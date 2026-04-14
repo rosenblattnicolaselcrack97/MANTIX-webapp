@@ -1,0 +1,4 @@
+codigo,nombre,categoria,ubicacion,criticidad,marca,modelo,serie,fecha_compra,proveedor_compra,frecuencia_mantenimiento,contacto_emergencia,telefono_emergencia,observaciones
+AC-OF-02,Aire acondicionado oficinas piso 2,Climatizacion,Oficinas Administrativas,media,Carrier,Split 5500,AC5500-002,2025-01-10,AirTech Refrigeracion,Mensual,Carlos Lopez,11-5555-2222,Cambio de filtros cada 30 dias
+MTF-01,Matafuego deposito A,Seguridad contra incendio,Deposito Norte,alta,Drago,ABC 10kg,MTF-ABC-010,2024-08-18,RedFuego Certificaciones,Trimestral,Luciana Paz,11-4444-0101,Control de carga y fecha de vencimiento
+PG-01,Motor porton ingreso principal,Accesos,Ingreso principal,alta,FAAC,741,PG741-101,2023-05-02,Portones del Sur,Bimestral,Jorge Silva,11-4888-1221,Verificar finales de carrera y fotocelulas
