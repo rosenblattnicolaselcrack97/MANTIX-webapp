@@ -148,7 +148,7 @@ function LoadingAnimation({ onComplete }: { onComplete: () => void }) {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, user, isLoading: authLoading } = useAuth();
+  const { signIn, user, isLoading: authLoading, profile, isSuperAdmin } = useAuth();
 
   const [showAnimation, setShowAnimation] = useState(true);
   const [pageVisible, setPageVisible] = useState(false);
@@ -160,9 +160,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace("/");
+      if (isSuperAdmin) {
+        router.replace("/admin");
+      } else {
+        router.replace("/");
+      }
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, isSuperAdmin, profile, router]);
 
   const handleAnimationComplete = () => {
     setShowAnimation(false);
@@ -389,8 +393,8 @@ export default function LoginPage() {
 
             <p style={{ textAlign: "center", marginTop: 40, fontSize: 11, color: "#94a3b8" }}>
               ¿Preguntas?{" "}
-              <a href="mailto:rosenblattnicolas@gmail.com" style={{ color: "#0ea5e9", textDecoration: "none" }}>
-                rosenblattnicolas@gmail.com
+              <a href="mailto:info@mantix.com.ar" style={{ color: "#0ea5e9", textDecoration: "none" }}>
+                info@mantix.com.ar
               </a>
             </p>
           </div>

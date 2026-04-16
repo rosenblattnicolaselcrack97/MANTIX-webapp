@@ -15,6 +15,7 @@ export interface Profile {
   phone: string | null;
   avatar_url: string | null;
   is_active: boolean;
+  is_super_admin: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -25,6 +26,7 @@ interface AuthContextValue {
   profile: Profile | null;
   isLoading: boolean;
   isError: string | null;
+  isSuperAdmin: boolean;
   signUp: (email: string, password: string, fullName: string, companyName?: string) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -192,6 +194,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) await loadProfile(user.id);
   };
 
+  const isSuperAdmin = profile?.is_super_admin === true;
+
   return (
     <AuthContext.Provider
       value={{
@@ -200,6 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         profile,
         isLoading,
         isError,
+        isSuperAdmin,
         signUp,
         signIn,
         signOut,
