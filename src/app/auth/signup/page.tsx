@@ -21,7 +21,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      router.replace("/dashboard");
+      router.replace("/");
     }
   }, [user, authLoading, router]);
 
@@ -54,7 +54,7 @@ export default function SignupPage() {
     }
 
     setSuccess(true);
-    setTimeout(() => router.replace("/dashboard"), 1500);
+    setTimeout(() => router.replace("/"), 1500);
   };
 
   if (authLoading) return null;
