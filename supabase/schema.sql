@@ -285,74 +285,89 @@ ALTER TABLE maintenance_budget   ENABLE ROW LEVEL SECURITY;
 -- ============================================================
 
 -- companies: el user ve solo su empresa
+DROP POLICY IF EXISTS "Users can view their own company" ON companies;
 CREATE POLICY "Users can view their own company"
   ON companies FOR SELECT
   USING (id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
+DROP POLICY IF EXISTS "Users can update their own company" ON companies;
 CREATE POLICY "Users can update their own company"
   ON companies FOR UPDATE
   USING (id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- profiles: cada user ve su perfil y los de su empresa
+DROP POLICY IF EXISTS "Users can view profiles in their company" ON profiles;
 CREATE POLICY "Users can view profiles in their company"
   ON profiles FOR SELECT
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid())
          OR id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile"
   ON profiles FOR UPDATE
   USING (id = auth.uid());
 
+DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile"
   ON profiles FOR INSERT
   WITH CHECK (id = auth.uid());
 
 -- locations: solo datos de la misma empresa
+DROP POLICY IF EXISTS "Users access own company locations" ON locations;
 CREATE POLICY "Users access own company locations"
   ON locations FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- assets: solo datos de la misma empresa
+DROP POLICY IF EXISTS "Users access own company assets" ON assets;
 CREATE POLICY "Users access own company assets"
   ON assets FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- providers: solo datos de la misma empresa (no se comparten)
+DROP POLICY IF EXISTS "Users access own company providers" ON providers;
 CREATE POLICY "Users access own company providers"
   ON providers FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- work_orders: solo datos de la misma empresa
+DROP POLICY IF EXISTS "Users access own company work_orders" ON work_orders;
 CREATE POLICY "Users access own company work_orders"
   ON work_orders FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- asset_status_history
+DROP POLICY IF EXISTS "Users access own company asset_status_history" ON asset_status_history;
 CREATE POLICY "Users access own company asset_status_history"
   ON asset_status_history FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- wo_status_history
+DROP POLICY IF EXISTS "Users access own company wo_status_history" ON wo_status_history;
 CREATE POLICY "Users access own company wo_status_history"
   ON wo_status_history FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- wo_labor
+DROP POLICY IF EXISTS "Users access own company wo_labor" ON wo_labor;
 CREATE POLICY "Users access own company wo_labor"
   ON wo_labor FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- wo_materials
+DROP POLICY IF EXISTS "Users access own company wo_materials" ON wo_materials;
 CREATE POLICY "Users access own company wo_materials"
   ON wo_materials FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- failure_events
+DROP POLICY IF EXISTS "Users access own company failure_events" ON failure_events;
 CREATE POLICY "Users access own company failure_events"
   ON failure_events FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
 
 -- maintenance_budget
+DROP POLICY IF EXISTS "Users access own company maintenance_budget" ON maintenance_budget;
 CREATE POLICY "Users access own company maintenance_budget"
   ON maintenance_budget FOR ALL
   USING (company_id = (SELECT company_id FROM profiles WHERE id = auth.uid()));
@@ -369,26 +384,32 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers para updated_at
+DROP TRIGGER IF EXISTS update_companies_updated_at ON companies;
 CREATE TRIGGER update_companies_updated_at
   BEFORE UPDATE ON companies
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
 CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON profiles
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_locations_updated_at ON locations;
 CREATE TRIGGER update_locations_updated_at
   BEFORE UPDATE ON locations
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_assets_updated_at ON assets;
 CREATE TRIGGER update_assets_updated_at
   BEFORE UPDATE ON assets
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_providers_updated_at ON providers;
 CREATE TRIGGER update_providers_updated_at
   BEFORE UPDATE ON providers
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_work_orders_updated_at ON work_orders;
 CREATE TRIGGER update_work_orders_updated_at
   BEFORE UPDATE ON work_orders
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
