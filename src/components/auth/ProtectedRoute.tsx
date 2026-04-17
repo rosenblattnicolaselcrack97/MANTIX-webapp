@@ -13,17 +13,20 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && profile !== null) {
       if (!user) {
         router.replace("/auth/login");
-      } else if (profile !== null && isSuperAdmin) {
+      } else if (isSuperAdmin) {
         // Super admin should always be in /admin, not the workspace
         router.replace("/admin");
+      } else if (!profile.company_id) {
+        // User has no company — must complete setup before using the app
+        router.replace("/setup");
       }
     }
   }, [user, isLoading, isSuperAdmin, profile, router]);
 
-  if (isLoading) {
+  if (isLoading || (user && profile === null)) {
     return (
       <div
         style={{
@@ -59,7 +62,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!user) return null;
+  if (!user || !profile?.company_id) return null;
 
   return <>{children}</>;
 }

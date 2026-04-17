@@ -27,7 +27,12 @@ interface AuthContextValue {
   isLoading: boolean;
   isError: string | null;
   isSuperAdmin: boolean;
-  signUp: (email: string, password: string, fullName: string, companyName?: string) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    companySetup: { mode: "create"; name: string } | { mode: "join"; id: string }
+  ) => Promise<{ error: string | null }>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   getProfile: () => Promise<Profile | null>;
@@ -104,7 +109,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: string,
     password: string,
     fullName: string,
-    companyName?: string
+    companySetup: { mode: "create"; name: string } | { mode: "join"; id: string }
   ): Promise<{ error: string | null }> => {
     setIsError(null);
     try {
@@ -123,24 +128,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data.user) {
-        // Crear empresa si se proporcionó nombre
         let companyId: string | null = null;
-        if (companyName?.trim()) {
-          const { data: company } = await supabase
+
+        if (companySetup.mode === "create") {
+          // Crear nueva empresa — el usuario que la crea es admin
+          const { data: company, error: companyError } = await supabase
             .from("companies")
-            .insert({ name: companyName.trim() })
+            .insert({ name: companySetup.name.trim() })
             .select("id")
             .single();
+          if (companyError) {
+            const msg = "No se pudo crear la empresa. Intentá de nuevo.";
+            setIsError(msg);
+            return { error: msg };
+          }
           companyId = company?.id ?? null;
+        } else {
+          // Unirse a empresa existente
+          companyId = companySetup.id;
         }
 
-        // Crear perfil del usuario
+        // Crear perfil vinculado a la empresa
         await supabase.from("profiles").upsert({
           id: data.user.id,
           email,
           full_name: fullName,
           company_id: companyId,
-          role: "admin",
+          role: companySetup.mode === "create" ? "admin" : "technician",
         });
       }
 
