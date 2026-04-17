@@ -9,14 +9,19 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, isSuperAdmin, profile } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      router.replace("/auth/login");
+    if (!isLoading) {
+      if (!user) {
+        router.replace("/auth/login");
+      } else if (profile !== null && isSuperAdmin) {
+        // Super admin should always be in /admin, not the workspace
+        router.replace("/admin");
+      }
     }
-  }, [user, isLoading, router]);
+  }, [user, isLoading, isSuperAdmin, profile, router]);
 
   if (isLoading) {
     return (

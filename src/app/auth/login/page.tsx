@@ -158,8 +158,20 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fix scroll: globals.css sets overflow:hidden on body for the workspace.
+  // Override it for auth pages.
   useEffect(() => {
-    if (!authLoading && user) {
+    document.documentElement.style.overflowY = "auto";
+    document.body.style.overflowY = "auto";
+    return () => {
+      document.documentElement.style.overflowY = "";
+      document.body.style.overflowY = "";
+    };
+  }, []);
+
+  // Redirect once user + profile are both loaded
+  useEffect(() => {
+    if (!authLoading && user && profile !== null) {
       if (isSuperAdmin) {
         router.replace("/admin");
       } else {
@@ -187,7 +199,7 @@ export default function LoginPage() {
       setIsSubmitting(false);
       return;
     }
-    router.replace("/");
+    // Redirect handled by useEffect once user + profile are loaded
   };
 
   if (authLoading) return null;
@@ -198,8 +210,15 @@ export default function LoginPage() {
 
       <div
         style={{
+          position: "fixed",
+          inset: 0,
+          overflowY: "auto",
           opacity: pageVisible ? 1 : 0,
           transition: "opacity 0.45s ease",
+        }}
+      >
+      <div
+        style={{
           display: "flex",
           minHeight: "100vh",
           fontFamily: "system-ui, -apple-system, sans-serif",
@@ -399,6 +418,7 @@ export default function LoginPage() {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </>
   );

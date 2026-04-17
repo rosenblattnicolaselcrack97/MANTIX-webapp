@@ -19,6 +19,16 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Fix scroll: globals.css sets overflow:hidden on body for the workspace.
+  useEffect(() => {
+    document.documentElement.style.overflowY = "auto";
+    document.body.style.overflowY = "auto";
+    return () => {
+      document.documentElement.style.overflowY = "";
+      document.body.style.overflowY = "";
+    };
+  }, []);
+
   useEffect(() => {
     if (!authLoading && user) {
       router.replace("/");
