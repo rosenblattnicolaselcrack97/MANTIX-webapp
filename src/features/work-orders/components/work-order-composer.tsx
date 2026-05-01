@@ -438,12 +438,12 @@ export function WorkOrderComposer({
               </div>
 
               {submitError ? (
-                <div className="mt-4 rounded-[10px] border border-danger/30 bg-danger/10 p-3 text-[12px] text-danger">
+                <div className="notice-danger mt-4">
                   {submitError}
                 </div>
               ) : null}
               {submitted ? (
-                <div className="mt-4 rounded-[10px] border border-success/30 bg-success/10 p-3 text-[12px] text-success">
+                <div className="notice-success mt-4">
                   Orden guardada correctamente en Supabase.
                 </div>
               ) : null}

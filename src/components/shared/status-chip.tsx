@@ -10,14 +10,6 @@ import type {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-const toneClasses: Record<Tone, string> = {
-  brand: "text-brand",
-  neutral: "text-muted",
-  success: "text-success",
-  warning: "text-warning",
-  danger: "text-danger",
-};
-
 const workOrderToneMap: Record<WorkOrderStatus, Tone> = {
   open: "warning",
   in_progress: "brand",
@@ -54,7 +46,7 @@ export function StatusChip({
     <Badge className={className} tone={tone}>
       {dot ? (
         <span
-          className={cn("mantix-badge-dot", toneClasses[tone])}
+          className={cn("mantix-badge-dot opacity-70")}
           aria-hidden="true"
         />
       ) : null}

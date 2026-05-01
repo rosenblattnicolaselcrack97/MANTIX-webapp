@@ -413,9 +413,9 @@ export function AssetRegistrationForm({ areas, categories, providers, sites }: A
                 <div>✓ Estado inicial</div>
                 <div>✓ Criticidad</div>
               </div>
-              <div className="mt-3 rounded-[8px] border border-warning/20 bg-warning/8 p-3 text-[11px] text-warning">Los demás campos son opcionales, pero mejoran el seguimiento operativo del activo.</div>
-              {submitError ? <div className="mt-3 rounded-[8px] border border-danger/30 bg-danger/10 p-3 text-[11px] text-danger">{submitError}</div> : null}
-              {submitted ? <div className="mt-3 rounded-[8px] border border-success/30 bg-success/10 p-3 text-[11px] text-success">Activo guardado correctamente en Supabase.</div> : null}
+              <div className="notice-warning mt-3 text-[11px]">Los demás campos son opcionales, pero mejoran el seguimiento operativo del activo.</div>
+              {submitError ? <div className="notice-danger mt-3 text-[11px]">{submitError}</div> : null}
+              {submitted ? <div className="notice-success mt-3 text-[11px]">Activo guardado correctamente en Supabase.</div> : null}
             </CardContent>
           </Card>
         </div>

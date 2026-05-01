@@ -9,6 +9,12 @@
   --red: #ff3d5a;
   --yellow: #ffb800;
   --orange: #ff6b35;
+  --on-brand: #ffffff;
+  --on-cyan: #071924;
+  --on-success: #041b12;
+  --on-danger: #ffffff;
+  --on-warning: #2a1d00;
+  --on-orange: #251004;
   --bg: #06080e;
   --s1: #0b1018;
   --s2: #101724;
@@ -31,6 +37,14 @@
 }
 
 html[data-theme="light"] {
+  --blue: #1458b8;
+  --blue-h: #0f4fa8;
+  --blue-d: #0b3f87;
+  --cyan: #006f8f;
+  --green: #0b6b4a;
+  --red: #b4233d;
+  --yellow: #8a5b00;
+  --orange: #9a3f22;
   --bg: #e8eef7;
   --s1: #ffffff;
   --s2: #f4f7fc;
@@ -200,6 +214,7 @@ textarea {
   align-items: center;
   justify-content: center;
   align-self: flex-start;
+  border: 1px solid var(--border2);
   border-radius: 8px;
   background: #fff;
   padding: 8px 16px;
@@ -392,6 +407,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 1px solid var(--border2);
   border-radius: 5px;
   background: #fff;
   padding: 2px 8px;
@@ -579,9 +595,9 @@ textarea {
 }
 
 .filter-chip.active {
-  border-color: var(--blue);
-  background: var(--blue);
-  color: #fff;
+  border-color: var(--blue-d);
+  background: var(--blue-d);
+  color: var(--on-brand);
 }
 
 .kpi-grid {
@@ -759,33 +775,33 @@ tbody tr:hover td {
 }
 
 .tone-brand {
-  background: rgba(30, 122, 255, 0.12);
-  color: var(--blue);
+  background: var(--blue-d);
+  color: var(--on-brand);
 }
 
 .tone-success {
-  background: rgba(0, 214, 143, 0.12);
-  color: var(--green);
+  background: var(--green);
+  color: var(--on-success);
 }
 
 .tone-warning {
-  background: rgba(255, 184, 0, 0.12);
-  color: var(--yellow);
+  background: var(--yellow);
+  color: var(--on-warning);
 }
 
 .tone-danger {
-  background: rgba(255, 61, 90, 0.12);
-  color: var(--red);
+  background: var(--red);
+  color: var(--on-danger);
 }
 
 .tone-neutral {
   background: var(--s3);
-  color: var(--t2);
+  color: var(--t1);
 }
 
 .tone-cyan {
-  background: rgba(0, 198, 255, 0.12);
-  color: var(--cyan);
+  background: var(--cyan);
+  color: var(--on-cyan);
 }
 
 .activity-item {
@@ -1372,9 +1388,9 @@ tbody tr:hover td {
 }
 
 .settings-tab.active {
-  border-color: var(--blue);
-  background: var(--blue);
-  color: #fff;
+  border-color: var(--blue-d);
+  background: var(--blue-d);
+  color: var(--on-brand);
 }
 
 .settings-row {
@@ -1775,13 +1791,13 @@ tbody tr:hover td {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid var(--blue);
+  border: 1px solid var(--blue-d);
   border-radius: 9px;
-  background: var(--blue);
+  background: var(--blue-d);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-brand);
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
@@ -1789,8 +1805,8 @@ tbody tr:hover td {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--blue-h);
-  border-color: var(--blue-h);
+  background: var(--blue);
+  border-color: var(--blue);
   box-shadow: var(--glow-blue);
 }
 
@@ -1832,13 +1848,13 @@ tbody tr:hover td {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid rgba(255, 61, 90, 0.3);
+  border: 1px solid var(--red);
   border-radius: 9px;
-  background: rgba(255, 61, 90, 0.08);
+  background: var(--red);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--red);
+  color: var(--on-danger);
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
@@ -1846,7 +1862,7 @@ tbody tr:hover td {
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(255, 61, 90, 0.15);
+  filter: brightness(1.06);
   border-color: var(--red);
 }
 
@@ -1888,13 +1904,13 @@ tbody tr:hover td {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border: 1px solid rgba(0, 214, 143, 0.3);
+  border: 1px solid var(--green);
   border-radius: 9px;
-  background: rgba(0, 214, 143, 0.08);
+  background: var(--green);
   padding: 8px 16px;
   font-size: 13px;
   font-weight: 600;
-  color: var(--green);
+  color: var(--on-success);
   cursor: pointer;
   text-decoration: none;
   transition: all 0.15s ease;
@@ -1902,7 +1918,7 @@ tbody tr:hover td {
 }
 
 .btn-success:hover:not(:disabled) {
-  background: rgba(0, 214, 143, 0.15);
+  filter: brightness(1.06);
 }
 
 .btn-sm {
@@ -2039,17 +2055,52 @@ tbody tr:hover td {
 
 /* ─── Status / Priority badges ───────────────────────────── */
 
-.badge-status-pending    { background: rgba(255,184,0,0.12);  color: var(--yellow); }
-.badge-status-in_progress{ background: rgba(30,122,255,0.12); color: var(--blue);   }
-.badge-status-scheduled  { background: rgba(0,198,255,0.12);  color: var(--cyan);   }
-.badge-status-blocked    { background: rgba(255,61,90,0.12);  color: var(--red);    }
-.badge-status-completed  { background: rgba(0,214,143,0.12);  color: var(--green);  }
-.badge-status-cancelled  { background: var(--s3);             color: var(--t3);     }
+.badge-status-pending    { background: var(--yellow); color: var(--on-warning); }
+.badge-status-in_progress{ background: var(--blue-d); color: var(--on-brand); }
+.badge-status-scheduled  { background: var(--cyan); color: var(--on-cyan); }
+.badge-status-blocked    { background: var(--red); color: var(--on-danger); }
+.badge-status-completed  { background: var(--green); color: var(--on-success); }
+.badge-status-cancelled  { background: var(--s3); color: var(--t1); }
 
-.badge-priority-low      { background: var(--s3);             color: var(--t3);     }
-.badge-priority-medium   { background: rgba(255,184,0,0.12);  color: var(--yellow); }
-.badge-priority-high     { background: rgba(255,107,53,0.12); color: var(--orange); }
-.badge-priority-urgent   { background: rgba(255,61,90,0.12);  color: var(--red);    }
+.badge-priority-low      { background: var(--s3); color: var(--t1); }
+.badge-priority-medium   { background: var(--yellow); color: var(--on-warning); }
+.badge-priority-high     { background: var(--orange); color: var(--on-orange); }
+.badge-priority-urgent   { background: var(--red); color: var(--on-danger); }
+
+.notice-danger,
+.notice-success,
+.notice-warning,
+.notice-cyan {
+  border-radius: 10px;
+  border: 1px solid transparent;
+  padding: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.notice-danger {
+  border-color: var(--red);
+  background: var(--red);
+  color: var(--on-danger);
+}
+
+.notice-success {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--on-success);
+}
+
+.notice-warning {
+  border-color: var(--yellow);
+  background: var(--yellow);
+  color: var(--on-warning);
+}
+
+.notice-cyan {
+  border-color: var(--cyan);
+  background: var(--cyan);
+  color: var(--on-cyan);
+}
 
 .badge {
   display: inline-flex;

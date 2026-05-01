@@ -10,17 +10,17 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "border-brand bg-brand px-4 text-white hover:bg-brand-hover hover:shadow-[var(--glow-blue)]",
+          "border-brand-dark bg-brand-dark px-4 text-[var(--on-brand)] hover:bg-brand hover:shadow-[var(--glow-blue)]",
         secondary:
           "border-line bg-surface-alt px-4 text-foreground hover:border-brand hover:text-brand",
         outline:
           "border-line bg-transparent px-4 text-foreground hover:border-line-strong hover:bg-surface-alt",
         ghost:
           "border-transparent bg-transparent px-3 text-muted hover:bg-surface-alt hover:text-foreground",
-        cyan: "border-cyan bg-cyan/10 px-4 text-cyan hover:bg-cyan/15",
+        cyan: "border-cyan bg-cyan px-4 text-[var(--on-cyan)] hover:brightness-110",
         success:
-          "border-success bg-success/10 px-4 text-success hover:bg-success/15",
-        danger: "border-danger bg-danger/10 px-4 text-danger hover:bg-danger/15",
+          "border-success bg-success px-4 text-[var(--on-success)] hover:brightness-110",
+        danger: "border-danger bg-danger px-4 text-[var(--on-danger)] hover:brightness-110",
       },
       size: {
         default: "h-9",

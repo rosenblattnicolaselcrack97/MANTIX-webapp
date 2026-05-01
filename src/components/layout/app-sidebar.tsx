@@ -162,7 +162,7 @@ export function AppSidebar({
               <div className="truncate text-[13px] font-semibold text-foreground">
                 {currentUser.fullName}
               </div>
-              <div className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-bold text-cyan">
+              <div className="mt-0.5 inline-flex items-center gap-1 rounded-full border border-cyan bg-cyan px-2 py-0.5 text-[10px] font-bold text-[var(--on-cyan)]">
                 <Bell className="size-3" />
                 {currentUser.team ?? "Usuario"}
               </div>
