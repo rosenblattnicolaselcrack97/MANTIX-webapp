@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import type { Company, User } from "@/types/entities";
+import { isThemeMode, type ThemeMode } from "@/lib/theme";
+import { useTheme } from "@/components/theme/theme-provider";
 
 import { AppShell } from "@/components/layout/app-shell";
 
@@ -32,6 +34,7 @@ function buildWorkspaceUser(profile: NonNullable<ReturnType<typeof useAuth>["pro
     team: profile.role,
     availability: profile.is_active ? "online" : "offline",
     companyId: profile.company_id ?? "",
+    avatarUrl: profile.avatar_url ?? null,
   };
 }
 
@@ -58,9 +61,54 @@ function buildWorkspaceCompany(
   };
 }
 
+// Applies the user's saved theme preference to the ThemeProvider
+function ProfileThemeSync({ preference }: { preference: string | null | undefined }) {
+  const { setTheme } = useTheme();
+
+  useEffect(() => {
+    if (preference && isThemeMode(preference)) {
+      setTheme(preference as ThemeMode);
+    }
+  }, [preference, setTheme]);
+
+  return null;
+}
+
+// Applies company brand colors as CSS custom properties on <html>
+function CompanyColorSync({
+  primary,
+  secondary,
+}: {
+  primary?: string | null;
+  secondary?: string | null;
+}) {
+  useEffect(() => {
+    if (primary) document.documentElement.style.setProperty("--blue", primary);
+    if (secondary) document.documentElement.style.setProperty("--cyan", secondary);
+
+    return () => {
+      document.documentElement.style.removeProperty("--blue");
+      document.documentElement.style.removeProperty("--cyan");
+    };
+  }, [primary, secondary]);
+
+  return null;
+}
+
+interface CompanyData {
+  id: string;
+  name: string;
+  industry: string | null;
+  country: string | null;
+  city: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+}
+
 export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   const { profile } = useAuth();
   const [company, setCompany] = useState<Company | null>(null);
+  const [companyColors, setCompanyColors] = useState<{ primary: string | null; secondary: string | null }>({ primary: null, secondary: null });
   const [isLoadingCompany, setIsLoadingCompany] = useState(true);
 
   useEffect(() => {
@@ -79,12 +127,17 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
 
       const { data } = await supabase
         .from("companies")
-        .select("id, name, industry, country, city")
+        .select("id, name, industry, country, city, primary_color, secondary_color")
         .eq("id", profile.company_id)
         .maybeSingle();
 
       if (isMounted) {
-        setCompany(data ? buildWorkspaceCompany(data) : null);
+        const row = data as CompanyData | null;
+        setCompany(row ? buildWorkspaceCompany(row) : null);
+        setCompanyColors({
+          primary: row?.primary_color ?? null,
+          secondary: row?.secondary_color ?? null,
+        });
         setIsLoadingCompany(false);
       }
     };
@@ -158,8 +211,12 @@ export function WorkspaceShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppShell company={company} currentUser={buildWorkspaceUser(profile)}>
-      {children}
-    </AppShell>
+    <>
+      <ProfileThemeSync preference={profile.theme_preference} />
+      <CompanyColorSync primary={companyColors.primary} secondary={companyColors.secondary} />
+      <AppShell company={company} currentUser={buildWorkspaceUser(profile)}>
+        {children}
+      </AppShell>
+    </>
   );
 }

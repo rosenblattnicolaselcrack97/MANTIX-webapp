@@ -25,6 +25,7 @@ export interface User {
   team: string;
   availability: "online" | "away" | "offline";
   companyId: string;
+  avatarUrl?: string | null;
 }
 
 export interface Company {

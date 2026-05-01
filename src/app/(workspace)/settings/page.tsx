@@ -6,6 +6,8 @@ import { ChangeEvent, useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { isCompanyAdminRole } from "@/lib/roles";
+import { isThemeMode, type ThemeMode } from "@/lib/theme";
+import { useTheme } from "@/components/theme/theme-provider";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -26,6 +28,7 @@ interface CompanySummary {
 
 export default function SettingsPage() {
   const { profile } = useAuth();
+  const { setTheme } = useTheme();
   const [activeTab, setActiveTab] = useState<"user" | "company">("user");
 
   const [firstName, setFirstName] = useState("");
@@ -169,6 +172,9 @@ export default function SettingsPage() {
       return;
     }
 
+    if (isThemeMode(themePreference)) {
+      setTheme(themePreference as ThemeMode);
+    }
     setUserMessage("Configuracion de usuario guardada correctamente.");
     setIsSavingUser(false);
   };
@@ -332,13 +338,42 @@ export default function SettingsPage() {
 
                 <div>
                   <span className="form-label">Avatar</span>
-                  {avatarUrl ? (
-                    <div className="mb-2 text-[12px] text-muted">Avatar actual cargado.</div>
-                  ) : (
-                    <div className="mb-2 text-[12px] text-muted">Sin avatar cargado.</div>
-                  )}
-                  <input type="file" accept="image/*" onChange={uploadAvatar} />
-                  <div className="mt-1 text-[12px] text-muted">Si no subis foto, se usaran iniciales como avatar.</div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 10 }}>
+                    {avatarUrl ? (
+                      <img
+                        src={avatarUrl}
+                        alt="Avatar"
+                        style={{ width: 72, height: 72, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--border)", flexShrink: 0 }}
+                      />
+                    ) : (
+                      <div style={{ width: 72, height: 72, borderRadius: "50%", background: "linear-gradient(135deg, var(--blue), var(--cyan))", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+                        {profile?.full_name?.trim().split(/\s+/).slice(0, 2).map((p) => p[0]?.toUpperCase()).join("") || "M"}
+                      </div>
+                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ cursor: "pointer" }}>
+                        <span className="form-label" style={{ marginBottom: 0, display: "block" }}>
+                          {isUploadingAvatar ? "Subiendo..." : "Subir foto"}
+                        </span>
+                        <input type="file" accept="image/*" onChange={uploadAvatar} disabled={isUploadingAvatar} style={{ display: "none" }} />
+                        <span
+                          style={{ display: "inline-flex", alignItems: "center", border: "1px solid var(--border)", borderRadius: 8, padding: "6px 12px", fontSize: 12, fontWeight: 600, color: "var(--t2)", background: "var(--s2)", cursor: isUploadingAvatar ? "not-allowed" : "pointer", marginTop: 4 }}
+                        >
+                          {isUploadingAvatar ? "..." : "Elegir imagen"}
+                        </span>
+                      </label>
+                      {avatarUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setAvatarUrl(null)}
+                          style={{ fontSize: 12, color: "var(--red)", background: "none", border: "none", cursor: "pointer", padding: 0, textAlign: "left", fontWeight: 600 }}
+                        >
+                          Eliminar avatar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-[12px] text-muted">Si no subis foto, se muestran tus iniciales.</div>
                 </div>
 
                 <div className="form-grid-3">

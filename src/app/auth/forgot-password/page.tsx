@@ -12,10 +12,8 @@ export default function ForgotPasswordPage() {
   const [success, setSuccess] = useState<string | null>(null);
 
   const redirectTo = useMemo(() => {
-    const envSite = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-    if (envSite) return `${envSite}/auth/update-password`;
-    if (typeof window !== "undefined") return `${window.location.origin}/auth/update-password`;
-    return "";
+    const base = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? (typeof window !== "undefined" ? window.location.origin : "");
+    return `${base}/auth/confirm`;
   }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

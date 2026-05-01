@@ -1,8 +1,8 @@
 // @ts-nocheck
 "use client";
 
-import { useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
@@ -159,8 +159,9 @@ function AdminSidebar({ collapsed, onToggle }) {
 
 // ─── SubSidebar (empresa seleccionada) ───────────────────────────────────────
 
-function AdminSubSidebar() {
+function AdminSubSidebarInner() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { selectedCompany, clearSelectedCompany } = useSelectedCompany();
   const router = useRouter();
 
@@ -178,10 +179,8 @@ function AdminSubSidebar() {
   ];
 
   const isTabActive = (tab) => {
-    if (typeof window === "undefined") return false;
-    const s = window.location.search;
-    if (tab === "") return pathname === base && !s.includes("tab=");
-    return s.includes(`tab=${tab}`);
+    if (tab === "") return pathname === base && !searchParams.get("tab");
+    return searchParams.get("tab") === tab;
   };
 
   const close = () => { clearSelectedCompany(); router.push("/admin/companies"); };
@@ -244,6 +243,14 @@ function AdminSubSidebar() {
         </button>
       </div>
     </div>
+  );
+}
+
+function AdminSubSidebar() {
+  return (
+    <Suspense fallback={null}>
+      <AdminSubSidebarInner />
+    </Suspense>
   );
 }
 

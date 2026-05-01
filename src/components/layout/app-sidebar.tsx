@@ -148,7 +148,15 @@ export function AppSidebar({
           type="button"
           title={collapsed ? currentUser.fullName : undefined}
         >
-          <div className="avatar-md">{currentUser.initials}</div>
+          {currentUser.avatarUrl ? (
+            <img
+              src={currentUser.avatarUrl}
+              alt={currentUser.initials}
+              style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+            />
+          ) : (
+            <div className="avatar-md">{currentUser.initials}</div>
+          )}
           {!collapsed ? (
             <div className="min-w-0 flex-1">
               <div className="truncate text-[13px] font-semibold text-foreground">
