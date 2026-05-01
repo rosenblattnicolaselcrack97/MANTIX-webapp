@@ -3,13 +3,15 @@ import {
   BarChart3,
   Boxes,
   ClipboardList,
-  Cog,
+  Building2,
   LayoutGrid,
-  MessageSquareMore,
-  Settings2,
+  Mail,
+  PiggyBank,
   ShieldCheck,
+  Settings2,
+  UserRound,
+  Users,
   Truck,
-  Wrench,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -17,7 +19,6 @@ export interface NavigationItem {
   title: string;
   href: string;
   icon: LucideIcon;
-  badge?: string;
 }
 
 export interface NavigationSection {
@@ -25,95 +26,110 @@ export interface NavigationSection {
   items: NavigationItem[];
 }
 
-export const navigationSections: NavigationSection[] = [
-  {
-    label: "Principal",
-    items: [
-      {
-        id: "dashboard",
-        title: "Dashboard",
-        href: "/",
-        icon: LayoutGrid,
-      },
-      {
-        id: "work-orders",
-        title: "Ordenes de trabajo",
-        href: "/work-orders",
-        icon: ClipboardList,
-        badge: "15",
-      },
-      {
-        id: "assets",
-        title: "Activos",
-        href: "/assets",
-        icon: Boxes,
-        badge: "32",
-      },
-      {
-        id: "providers",
-        title: "Proveedores",
-        href: "/providers",
-        icon: Truck,
-      },
-    ],
-  },
-  {
-    label: "Gestion",
-    items: [
-      {
-        id: "reports",
-        title: "Reportes",
-        href: "/reports",
-        icon: BarChart3,
-      },
-      {
-        id: "parts",
-        title: "Stock y Repuestos",
-        href: "/parts",
-        icon: Cog,
-      },
-      {
-        id: "preventive",
-        title: "Preventivo",
-        href: "/preventive",
-        icon: ShieldCheck,
-      },
-      {
-        id: "messages",
-        title: "Mensajes",
-        href: "/messages",
-        icon: MessageSquareMore,
-        badge: "3",
-      },
-      {
-        id: "branches",
-        title: "Sucursales",
-        href: "/settings",
-        icon: Wrench,
-      },
-    ],
-  },
-  {
-    label: "Cuenta",
-    items: [
-      {
-        id: "settings",
-        title: "Configuracion",
-        href: "/settings",
-        icon: Settings2,
-      },
-    ],
-  },
-];
+export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSection[] {
+  return [
+    {
+      label: "Principal",
+      items: [
+        {
+          id: "dashboard",
+          title: "Dashboard",
+          href: "/",
+          icon: LayoutGrid,
+        },
+        {
+          id: "branches",
+          title: "Sucursales",
+          href: "/locations",
+          icon: Building2,
+        },
+        {
+          id: "assets",
+          title: "Activos",
+          href: "/assets",
+          icon: Boxes,
+        },
+        {
+          id: "work-orders",
+          title: "Ordenes de trabajo",
+          href: "/work-orders",
+          icon: ClipboardList,
+        },
+        {
+          id: "providers",
+          title: "Proveedores",
+          href: "/providers",
+          icon: Truck,
+        },
+      ],
+    },
+    {
+      label: "Gestion",
+      items: [
+        {
+          id: "parts",
+          title: "Stock y repuestos",
+          href: "/parts",
+          icon: BarChart3,
+        },
+        {
+          id: "preventive",
+          title: "Mantenimiento preventivo",
+          href: "/preventive",
+          icon: ShieldCheck,
+        },
+        {
+          id: "finance",
+          title: "Finanzas del mantenimiento",
+          href: "/finance-maintenance",
+          icon: PiggyBank,
+        },
+        {
+          id: "email-comms",
+          title: "Comunicaciones por email",
+          href: "/communications-email",
+          icon: Mail,
+        },
+      ],
+    },
+    {
+      label: "Configuracion",
+      items: [
+        {
+          id: "settings",
+          title: "Configuracion",
+          href: "/settings",
+          icon: Settings2,
+        },
+        ...(isCompanyAdmin
+          ? [
+              {
+                id: "users",
+                title: "Usuarios",
+                href: "/users",
+                icon: Users,
+              },
+            ]
+          : []),
+        {
+          id: "account",
+          title: "Cuenta",
+          href: "/account",
+          icon: UserRound,
+        },
+      ],
+    },
+  ];
+}
 
 const pageMeta = {
   "/": {
     title: "Dashboard",
-    subtitle: "Buenos dias, Juan",
+    subtitle: "Resumen operativo de tu empresa",
   },
   "/work-orders": {
     title: "Ordenes de Trabajo",
-    subtitle: "15 activas · 3 urgentes sin asignar",
+    subtitle: "Gestion y seguimiento de intervenciones",
   },
   "/work-orders/new": {
     title: "Nueva Orden de Trabajo",
@@ -121,7 +137,7 @@ const pageMeta = {
   },
   "/assets": {
     title: "Activos",
-    subtitle: "32 equipos registrados · 5 con alertas",
+    subtitle: "Inventario y estado de equipos",
   },
   "/assets/new": {
     title: "Registrar Nuevo Activo",
@@ -129,27 +145,43 @@ const pageMeta = {
   },
   "/providers": {
     title: "Proveedores y Tecnicos Externos",
-    subtitle: "12 contactos registrados",
+    subtitle: "Directorio de contactos de mantenimiento",
   },
-  "/messages": {
-    title: "Mensajes",
-    subtitle: "3 sin leer",
+  "/locations": {
+    title: "Sucursales",
+    subtitle: "Sedes activas de operacion",
   },
   "/reports": {
     title: "Reportes y Analisis",
-    subtitle: "Metricas · Marzo 2026",
+    subtitle: "Metricas e indicadores operativos",
   },
   "/preventive": {
-    title: "Preventivo",
-    subtitle: "Rutinas para mantenimiento anexo y operativo",
+    title: "Mantenimiento preventivo",
+    subtitle: "Rutinas para mantenimiento programado",
   },
   "/parts": {
     title: "Stock y Repuestos",
-    subtitle: "Inventario operativo y reposicion",
+    subtitle: "Futuramente disponible",
+  },
+  "/finance-maintenance": {
+    title: "Finanzas del mantenimiento",
+    subtitle: "Futuramente disponible",
+  },
+  "/communications-email": {
+    title: "Comunicaciones por email",
+    subtitle: "Futuramente disponible",
   },
   "/settings": {
     title: "Configuracion",
     subtitle: "Ajustes de tu espacio en Mantix",
+  },
+  "/users": {
+    title: "Usuarios",
+    subtitle: "Gestion de usuarios de empresa",
+  },
+  "/account": {
+    title: "Cuenta",
+    subtitle: "Resumen de tu cuenta y acceso",
   },
 } as const;
 
@@ -157,7 +189,7 @@ export function getPageMeta(pathname: string) {
   if (pathname.startsWith("/work-orders/") && pathname !== "/work-orders/new") {
     return {
       title: "Detalle de Orden",
-      subtitle: "Orden #2847",
+      subtitle: "Seguimiento de la orden de trabajo",
     };
   }
 

@@ -14,8 +14,16 @@ export interface Profile {
   role: string;
   phone: string | null;
   avatar_url: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  display_name?: string | null;
+  theme_preference?: string | null;
+  notification_preferences?: Record<string, unknown> | null;
+  email_preferences?: Record<string, unknown> | null;
   is_active: boolean;
   is_super_admin: boolean;
+  is_mantix_admin: boolean;
+  last_login: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -27,6 +35,8 @@ interface AuthContextValue {
   isLoading: boolean;
   isError: string | null;
   isSuperAdmin: boolean;
+  isMantixAdmin: boolean;
+  isAdminLevel: boolean;
   signUp: (
     email: string,
     password: string,
@@ -52,59 +62,103 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState<string | null>(null);
 
-  // Carga el perfil del usuario desde la tabla profiles
-  const loadProfile = async (userId: string) => {
-    const { data, error } = await supabase
+  // Carga el perfil con timeout de 5 segundos para evitar bloqueos RLS.
+  const loadProfile = async (userId: string): Promise<Profile | null> => {
+    // Competencia entre la query y un timeout de 5 s.
+    // Si la RLS cuelga (auto-referencia, lentitud de red, etc.) resolvemos con null.
+    const queryPromise = supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
-      .single();
+      .maybeSingle();
 
-    if (!error && data) {
-      setProfile(data as Profile);
-    }
-    return data as Profile | null;
+    const timeoutPromise = new Promise<{ data: null; error: null }>((res) =>
+      setTimeout(() => res({ data: null, error: null }), 5000)
+    );
+
+    const { data } = await Promise.race([queryPromise, timeoutPromise]);
+    const prof = (data as Profile | null) ?? null;
+    setProfile(prof);
+    return prof;
   };
 
-  // Inicializa la sesión al montar
   useEffect(() => {
-    const initAuth = async () => {
-      try {
-        const { data: { session: currentSession } } = await supabase.auth.getSession();
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+    // ── INICIALIZACIÓN DUAL (robusta para Next.js + Supabase v2) ─────────────
+    //
+    // 1. getSession() lee la sesión de localStorage SIN red — resuelve en < 1 ms.
+    //    Esto inicializa el estado inmediatamente sin esperar ningún evento.
+    //
+    // 2. onAuthStateChange gestiona cambios futuros (login, logout, token refresh).
+    //
+    // 3. Un timeout de 8 s garantiza que isLoading SIEMPRE resuelva aunque
+    //    Supabase no pueda conectarse o INITIAL_SESSION nunca llegue.
 
-        if (currentSession?.user) {
-          await loadProfile(currentSession.user.id);
-        }
-      } catch {
-        setIsError("Error al inicializar la sesión");
-      } finally {
+    let resolved = false;
+
+    const resolve = () => {
+      if (!resolved) {
+        resolved = true;
         setIsLoading(false);
       }
     };
 
-    initAuth();
+    // Fallback de seguridad
+    const safetyTimer = setTimeout(() => {
+      resolve();
+    }, 8000);
 
-    // Suscripción a cambios de autenticación
+    // Inicialización inmediata desde localStorage
+    const initAuth = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        if (!resolved) {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          if (currentSession?.user) {
+            await loadProfile(currentSession.user.id);
+          } else {
+            setProfile(null);
+          }
+        }
+      } catch {
+        setProfile(null);
+      } finally {
+        resolve();
+      }
+    };
+
+    void initAuth();
+
+    // Suscripción a cambios posteriores (no re-inicializa — solo actualiza estado)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
+        // Ignorar el INITIAL_SESSION si ya resolvimos vía getSession()
+        if (_event === "INITIAL_SESSION") return;
 
-        if (currentSession?.user) {
-          await loadProfile(currentSession.user.id);
-        } else {
+        try {
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          if (currentSession?.user) {
+            await loadProfile(currentSession.user.id);
+          } else {
+            setProfile(null);
+          }
+        } catch {
           setProfile(null);
         }
-        setIsLoading(false);
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimer);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ─── signUp ──────────────────────────────────────────────────────────────
+  // Delega la creación del usuario, empresa y perfil al API route /api/auth/signup
+  // que usa service_role para bypassear RLS correctamente.
   const signUp = async (
     email: string,
     password: string,
@@ -113,49 +167,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   ): Promise<{ error: string | null }> => {
     setIsError(null);
     try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-        },
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          fullName,
+          companyMode: companySetup.mode,
+          companyName: companySetup.mode === "create" ? companySetup.name : undefined,
+          companyId: companySetup.mode === "join" ? companySetup.id : undefined,
+        }),
       });
 
-      if (error) {
-        const msg = translateError(error.message);
+      const json = await res.json() as { ok?: boolean; error?: string };
+
+      if (!res.ok || !json.ok) {
+        const msg = json.error ?? "Error al crear la cuenta. Intentá de nuevo.";
         setIsError(msg);
         return { error: msg };
-      }
-
-      if (data.user) {
-        let companyId: string | null = null;
-
-        if (companySetup.mode === "create") {
-          // Crear nueva empresa — el usuario que la crea es admin
-          const { data: company, error: companyError } = await supabase
-            .from("companies")
-            .insert({ name: companySetup.name.trim() })
-            .select("id")
-            .single();
-          if (companyError) {
-            const msg = "No se pudo crear la empresa. Intentá de nuevo.";
-            setIsError(msg);
-            return { error: msg };
-          }
-          companyId = company?.id ?? null;
-        } else {
-          // Unirse a empresa existente
-          companyId = companySetup.id;
-        }
-
-        // Crear perfil vinculado a la empresa
-        await supabase.from("profiles").upsert({
-          id: data.user.id,
-          email,
-          full_name: fullName,
-          company_id: companyId,
-          role: companySetup.mode === "create" ? "admin" : "technician",
-        });
       }
 
       return { error: null };
@@ -208,7 +238,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) await loadProfile(user.id);
   };
 
-  const isSuperAdmin = profile?.is_super_admin === true;
+  // check profile first; fall back to user_metadata for users created directly in Supabase Dashboard
+  const isSuperAdmin =
+    profile?.is_super_admin === true ||
+    Boolean((user?.user_metadata as Record<string, unknown> | undefined)?.is_super_admin);
+
+  const isMantixAdmin = profile?.is_mantix_admin === true;
+
+  // true for both SuperAdmin and MantixAdmin — allows access to /admin
+  const isAdminLevel = isSuperAdmin || isMantixAdmin;
 
   return (
     <AuthContext.Provider
@@ -219,6 +257,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         isLoading,
         isError,
         isSuperAdmin,
+        isMantixAdmin,
+        isAdminLevel,
         signUp,
         signIn,
         signOut,

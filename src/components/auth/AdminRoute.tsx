@@ -9,18 +9,18 @@ interface AdminRouteProps {
 }
 
 export function AdminRoute({ children }: AdminRouteProps) {
-  const { user, isLoading, isSuperAdmin } = useAuth();
+  const { user, isLoading, isAdminLevel } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
         router.replace("/auth/login");
-      } else if (!isSuperAdmin) {
+      } else if (!isAdminLevel) {
         router.replace("/");
       }
     }
-  }, [user, isLoading, isSuperAdmin, router]);
+  }, [user, isLoading, isAdminLevel, router]);
 
   if (isLoading) {
     return (
@@ -51,7 +51,7 @@ export function AdminRoute({ children }: AdminRouteProps) {
     );
   }
 
-  if (!user || !isSuperAdmin) return null;
+  if (!user || !isAdminLevel) return null;
 
   return <>{children}</>;
 }

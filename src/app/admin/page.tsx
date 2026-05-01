@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { Building2, Users, Box, ClipboardList, MapPin, TrendingUp, AlertCircle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface Stats {
   companies: number;
@@ -58,6 +59,7 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
 }
 
 export default function AdminOverviewPage() {
+  const { isSuperAdmin, isMantixAdmin, profile } = useAuth();
   const [stats, setStats] = useState<Stats>({ companies: 0, users: 0, assets: 0, workOrders: 0, locations: 0, activeUsers: 0 });
   const [recentCompanies, setRecentCompanies] = useState<RecentCompany[]>([]);
   const [loading, setLoading] = useState(true);
@@ -65,6 +67,28 @@ export default function AdminOverviewPage() {
   useEffect(() => {
     const load = async () => {
       try {
+        // For MantixAdmin: get only assigned company IDs
+        let companyIdFilter: string[] | null = null;
+        if (isMantixAdmin && !isSuperAdmin && profile?.id) {
+          const { data: assigned } = await supabase
+            .from("admin_company_assignments")
+            .select("company_id")
+            .eq("admin_id", profile.id);
+          companyIdFilter = (assigned ?? []).map((a) => a.company_id);
+          if (companyIdFilter.length === 0) {
+            setLoading(false);
+            return;
+          }
+        }
+
+        const applyFilter = (q: any) => companyIdFilter ? q.in("company_id", companyIdFilter) : q;
+        const applyCompanyFilter = (q: any) => {
+          let r = q;
+          if (companyIdFilter) r = r.in("id", companyIdFilter);
+          else if (isSuperAdmin) r = r.neq("industry", "SaaS CMMS");
+          return r;
+        };
+
         const [
           { count: companies },
           { count: users },
@@ -74,13 +98,13 @@ export default function AdminOverviewPage() {
           { count: locations },
           { data: recent },
         ] = await Promise.all([
-          supabase.from("companies").select("*", { count: "exact", head: true }),
-          supabase.from("profiles").select("*", { count: "exact", head: true }),
-          supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true),
-          supabase.from("assets").select("*", { count: "exact", head: true }),
-          supabase.from("work_orders").select("*", { count: "exact", head: true }),
-          supabase.from("locations").select("*", { count: "exact", head: true }),
-          supabase.from("companies").select("id, name, plan, created_at, data_sharing_consent").order("created_at", { ascending: false }).limit(6),
+          applyCompanyFilter(supabase.from("companies").select("*", { count: "exact", head: true })),
+          applyFilter(supabase.from("profiles").select("*", { count: "exact", head: true })),
+          applyFilter(supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true)),
+          applyFilter(supabase.from("assets").select("*", { count: "exact", head: true })),
+          applyFilter(supabase.from("work_orders").select("*", { count: "exact", head: true })),
+          applyFilter(supabase.from("locations").select("*", { count: "exact", head: true })),
+          applyCompanyFilter(supabase.from("companies").select("id, name, plan, created_at, data_sharing_consent")).order("created_at", { ascending: false }).limit(6),
         ]);
         setStats({
           companies: companies ?? 0,
@@ -98,7 +122,7 @@ export default function AdminOverviewPage() {
       }
     };
     load();
-  }, []);
+  }, [isSuperAdmin, isMantixAdmin, profile]);
 
   return (
     <div style={{ padding: "32px 36px", minHeight: "100vh" }}>

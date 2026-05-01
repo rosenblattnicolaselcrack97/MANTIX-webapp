@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { type FormEvent, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 import type { Asset, WorkOrder, WorkOrderDraft } from "@/types/entities";
 
 import { PageHeader } from "@/components/shared/page-header";
@@ -44,8 +47,12 @@ export function WorkOrderComposer({
   relatedOrders,
   sites,
 }: WorkOrderComposerProps) {
+  const router = useRouter();
+  const { profile } = useAuth();
   const [draft, setDraft] = useState<WorkOrderDraft>(initialDraft);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const selectedAsset = useMemo(
     () => assets.find((asset) => draft.assetIds[0] === asset.id),
@@ -66,7 +73,60 @@ export function WorkOrderComposer({
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
-    setSubmitted(true);
+
+    const createWorkOrder = async () => {
+      if (!profile?.company_id) {
+        setSubmitError("No hay una empresa asociada para guardar esta orden.");
+        return;
+      }
+
+      if (!draft.assetIds[0] || !draft.description.trim()) {
+        setSubmitError("Seleccioná un activo y completá la descripción antes de guardar.");
+        return;
+      }
+
+      setIsSubmitting(true);
+      setSubmitError(null);
+
+      const selectedSite = draft.site || selectedAsset?.site || null;
+      const { data: location } = selectedSite
+        ? await supabase
+            .from("locations")
+            .select("id")
+            .eq("company_id", profile.company_id)
+            .eq("name", selectedSite)
+            .maybeSingle()
+        : { data: null };
+
+      const title = draft.title.trim() || draft.description.trim().slice(0, 80);
+
+      const { error } = await supabase.from("work_orders").insert({
+        company_id: profile.company_id,
+        asset_id: draft.assetIds[0],
+        location_id: location?.id ?? null,
+        created_by: profile.id,
+        title,
+        description: draft.description.trim(),
+        type: draft.type === "preventivo" ? "preventive" : "corrective",
+        priority: draft.priority === "medium" ? "normal" : draft.priority,
+        status: draft.status === "open" ? "pending" : draft.status,
+        resolution_type: draft.resolution,
+        due_date: draft.dueAt || null,
+      });
+
+      if (error) {
+        setSubmitError("No se pudo guardar la orden en Supabase.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      setSubmitted(true);
+      setIsSubmitting(false);
+      router.push("/work-orders");
+      router.refresh();
+    };
+
+    void createWorkOrder();
   };
 
   return (
@@ -77,8 +137,8 @@ export function WorkOrderComposer({
             <Button asChild variant="secondary">
               <Link href="/work-orders">Cancelar</Link>
             </Button>
-            <Button form="new-work-order-form" type="submit">
-              Crear Orden
+            <Button disabled={isSubmitting} form="new-work-order-form" type="submit">
+              {isSubmitting ? "Guardando..." : "Crear Orden"}
             </Button>
           </>
         }
@@ -377,10 +437,14 @@ export function WorkOrderComposer({
                 />
               </div>
 
+              {submitError ? (
+                <div className="mt-4 rounded-[10px] border border-danger/30 bg-danger/10 p-3 text-[12px] text-danger">
+                  {submitError}
+                </div>
+              ) : null}
               {submitted ? (
                 <div className="mt-4 rounded-[10px] border border-success/30 bg-success/10 p-3 text-[12px] text-success">
-                  Orden creada en modo demo. Si seleccionaste una orden previa,
-                  la cadena de continuidad ya queda representada en la UI.
+                  Orden guardada correctamente en Supabase.
                 </div>
               ) : null}
             </CardContent>

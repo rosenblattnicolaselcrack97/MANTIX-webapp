@@ -125,10 +125,8 @@ export default function SignupPage() {
     }
 
     setSuccess(true);
-    setTimeout(() => router.replace("/"), 1500);
+    setTimeout(() => router.replace("/auth/login?registered=1"), 2000);
   };
-
-  if (authLoading) return null;
 
   // ── Branding panel content per step ───────────────────────
   const leftContent =
@@ -482,6 +480,7 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 10,
   fontSize: 14,
   background: "#fff",
+  color: "#0f172a",
   outline: "none",
   transition: "border-color 0.2s",
   boxSizing: "border-box",

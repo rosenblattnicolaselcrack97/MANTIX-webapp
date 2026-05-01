@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tu cuenta de Mantix fue aprobada</title>
+    <style>
+      body { margin: 0; padding: 0; background: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+      .wrap { padding: 30px 16px; }
+      .card { max-width: 600px; margin: 0 auto; background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; overflow: hidden; }
+      .head { background: linear-gradient(135deg, #0a0f1e 0%, #0d1b3e 100%); color: #fff; padding: 26px 24px; text-align: center; }
+      .brand { font-size: 22px; font-weight: 800; letter-spacing: .08em; }
+      .body { padding: 28px 24px; color: #0f172a; }
+      .badge { display: inline-block; margin-bottom: 12px; border: 1px solid rgba(5,150,105,.3); background: rgba(16,185,129,.12); color: #047857; border-radius: 999px; padding: 6px 10px; font-size: 12px; font-weight: 700; }
+      h1 { margin: 0; font-size: 28px; line-height: 1.2; }
+      p { color: #475569; font-size: 14px; line-height: 1.7; }
+      .box { margin: 16px 0; border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 10px; padding: 12px; }
+      .row { margin: 6px 0; font-size: 14px; }
+      .btn { display: inline-block; margin-top: 8px; background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #fff !important; text-decoration: none; font-weight: 700; border-radius: 10px; padding: 12px 16px; }
+      .foot { padding: 18px 24px; border-top: 1px solid #e2e8f0; color: #64748b; font-size: 12px; line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="card">
+        <div class="head">
+          <div class="brand">MANTIX</div>
+        </div>
+        <div class="body">
+          <span class="badge">Cuenta aprobada</span>
+          <h1>Tu cuenta de Mantix fue aprobada</h1>
+          <p>Hola {{ .UserData.full_name }}, tu cuenta fue aprobada correctamente. Ya sos parte de Mantix.</p>
+
+          <div class="box">
+            <div class="row"><strong>Empresa:</strong> {{ .UserData.company_name }}</div>
+            <div class="row"><strong>Rol:</strong> {{ .UserData.role }}</div>
+          </div>
+
+          <p>Desde ahora podes ingresar a la plataforma para gestionar activos, ordenes de trabajo, mantenimiento, proveedores y trazabilidad operativa.</p>
+
+          <a class="btn" href="{{ .ConfirmationURL }}">Ingresar a Mantix</a>
+
+          <p>Si no reconoces esta accion, contacta al administrador de tu empresa.</p>
+        </div>
+        <div class="foot">
+          Equipo Mantix<br />
+          Este mensaje es informativo y no requiere respuesta.
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

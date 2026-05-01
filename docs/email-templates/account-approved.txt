@@ -1,0 +1,19 @@
+Tu cuenta de Mantix fue aprobada
+
+Hola {{ .UserData.full_name }},
+
+Tu cuenta fue aprobada correctamente.
+
+Ya sos parte de Mantix.
+
+Empresa: {{ .UserData.company_name }}
+Rol: {{ .UserData.role }}
+
+Desde ahora podes ingresar a la plataforma para gestionar activos, ordenes de trabajo, mantenimiento, proveedores y trazabilidad operativa.
+
+Ingresar a Mantix:
+{{ .ConfirmationURL }}
+
+Si no reconoces esta accion, contacta al administrador de tu empresa.
+
+Equipo Mantix

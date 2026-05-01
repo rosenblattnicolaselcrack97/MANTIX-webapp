@@ -3,30 +3,33 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
+import { buildAccountStatusRoute, resolveAccessState } from "@/lib/access-state";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { user, isLoading, isSuperAdmin, profile } = useAuth();
+  const { user, isLoading, isAdminLevel, profile } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && profile !== null) {
-      if (!user) {
-        router.replace("/auth/login");
-      } else if (isSuperAdmin) {
-        // Super admin should always be in /admin, not the workspace
-        router.replace("/admin");
-      } else if (!profile.company_id) {
-        // User has no company — must complete setup before using the app
-        router.replace("/setup");
-      }
-    }
-  }, [user, isLoading, isSuperAdmin, profile, router]);
+    if (!isLoading) {
+      const state = resolveAccessState({
+        isAuthenticated: Boolean(user),
+        isAdminLevel,
+        profile,
+      });
 
-  if (isLoading || (user && profile === null)) {
+      if (state === "unauthenticated") router.replace("/auth/login");
+      else if (state === "admin") router.replace("/admin");
+      else if (state !== "ready") router.replace(buildAccountStatusRoute(state));
+    }
+  }, [user, isLoading, isAdminLevel, profile, router]);
+
+  // Solo mostrar spinner mientras auth está cargando.
+  // Una vez isLoading=false el perfil está definitivamente resuelto.
+  if (isLoading) {
     return (
       <div
         style={{
@@ -62,7 +65,15 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     );
   }
 
-  if (!user || !profile?.company_id) return null;
+  if (!user) return null;
+
+  const state = resolveAccessState({
+    isAuthenticated: Boolean(user),
+    isAdminLevel,
+    profile,
+  });
+
+  if (state !== "ready") return null;
 
   return <>{children}</>;
 }

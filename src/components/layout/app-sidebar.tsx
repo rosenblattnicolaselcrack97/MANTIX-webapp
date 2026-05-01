@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, Cog, MessageSquareMore, Settings2 } from "lucide-react";
+import { Bell, ChevronLeft, ChevronRight, Cog, Settings2 } from "lucide-react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 import type { Company, User } from "@/types/entities";
+import { useAuth } from "@/contexts/AuthContext";
+import { isCompanyAdminRole } from "@/lib/roles";
 
 import { BrandMark } from "@/components/shared/brand-mark";
-import { navigationSections, type NavigationItem } from "@/lib/navigation";
+import { buildNavigationSections, type NavigationItem } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 
 interface AppSidebarProps {
@@ -16,6 +19,8 @@ interface AppSidebarProps {
   currentUser: User;
   onNavigate?: () => void;
   mobile?: boolean;
+  collapsed?: boolean;
+  onToggleCollapsed?: () => void;
 }
 
 function isActive(pathname: string, href: string) {
@@ -27,10 +32,12 @@ function SidebarLink({
   item,
   onNavigate,
   pathname,
+  collapsed,
 }: {
   item: NavigationItem;
   onNavigate?: () => void;
   pathname: string;
+  collapsed?: boolean;
 }) {
   const active = isActive(pathname, item.href);
   const Icon = item.icon;
@@ -40,19 +47,10 @@ function SidebarLink({
       className={cn("sidebar-link", active && "active")}
       href={item.href}
       onClick={onNavigate}
+      title={collapsed ? item.title : undefined}
     >
       <Icon className="size-4 shrink-0" />
-      <span className="truncate">{item.title}</span>
-      {item.badge ? (
-        <span
-          className={cn(
-            "sidebar-badge",
-            item.href === "/assets" && "sidebar-badge-blue",
-          )}
-        >
-          {item.badge}
-        </span>
-      ) : null}
+      {!collapsed ? <span className="truncate">{item.title}</span> : null}
     </Link>
   );
 }
@@ -63,30 +61,55 @@ export function AppSidebar({
   onNavigate,
   pathname,
   mobile = false,
+  collapsed = false,
+  onToggleCollapsed,
 }: AppSidebarProps) {
+  const router = useRouter();
+  const { profile, signOut } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+  const sections = buildNavigationSections(isCompanyAdminRole(profile?.role));
+
+  const handleSignOut = async () => {
+    await signOut();
+    onNavigate?.();
+    router.replace("/auth/login");
+  };
 
   return (
     <aside
       className={cn(
         "shell-sidebar",
+        collapsed && !mobile && "collapsed",
         mobile && "shell-sidebar-mobile overflow-hidden rounded-[14px] border border-line shadow-[var(--shadow-lg)]",
       )}
     >
       <div className="sidebar-brand">
-        <BrandMark />
+        <div className="flex items-center justify-between gap-2">
+          {!collapsed ? <BrandMark /> : <BrandMark compact />}
+          {!mobile ? (
+            <button
+              className="icon-shell"
+              onClick={onToggleCollapsed}
+              title={collapsed ? "Expandir" : "Colapsar"}
+              type="button"
+            >
+              {collapsed ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="sidebar-scroll">
-        {navigationSections.map((section) => (
+        {sections.map((section) => (
           <div key={section.label}>
-            <div className="sidebar-section-title">{section.label}</div>
+            {!collapsed ? <div className="sidebar-section-title">{section.label}</div> : null}
             {section.items.map((item) => (
               <SidebarLink
                 item={item}
                 key={item.id}
                 onNavigate={onNavigate}
                 pathname={pathname}
+                collapsed={collapsed}
               />
             ))}
           </div>
@@ -107,21 +130,10 @@ export function AppSidebar({
               <Settings2 className="size-4" />
               Configuracion
             </Link>
-            <Link
-              className="sidebar-user-dropdown-item"
-              href="/messages"
-              onClick={() => {
-                setMenuOpen(false);
-                onNavigate?.();
-              }}
-            >
-              <MessageSquareMore className="size-4" />
-              Mensajes
-            </Link>
             <div className="sidebar-user-dropdown-sep" />
             <button
               className="sidebar-user-dropdown-item text-danger"
-              onClick={() => setMenuOpen(false)}
+              onClick={handleSignOut}
               type="button"
             >
               <Cog className="size-4" />
@@ -134,18 +146,21 @@ export function AppSidebar({
           className="sidebar-user-card w-full text-left"
           onClick={() => setMenuOpen((current) => !current)}
           type="button"
+          title={collapsed ? currentUser.fullName : undefined}
         >
           <div className="avatar-md">{currentUser.initials}</div>
-          <div className="min-w-0 flex-1">
-            <div className="truncate text-[13px] font-semibold text-foreground">
-              {currentUser.fullName}
+          {!collapsed ? (
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-[13px] font-semibold text-foreground">
+                {currentUser.fullName}
+              </div>
+              <div className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-bold text-cyan">
+                <Bell className="size-3" />
+                {currentUser.team ?? "Usuario"}
+              </div>
             </div>
-            <div className="mt-0.5 inline-flex items-center gap-1 rounded-full bg-cyan/10 px-2 py-0.5 text-[10px] font-bold text-cyan">
-              <Bell className="size-3" />
-              Administrador
-            </div>
-          </div>
-          <span className="text-sm text-muted">⋯</span>
+          ) : null}
+          {!collapsed ? <span className="text-sm text-muted">⋯</span> : null}
         </button>
       </div>
 

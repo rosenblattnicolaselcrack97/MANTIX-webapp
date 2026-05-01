@@ -1,7 +1,16 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://placeholder.supabase.co";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "placeholder-anon-key";
+// NEXT_PUBLIC_* variables must be accessed with direct static property access
+// so that Next.js/webpack can inline them into the client bundle.
+// Dynamic access (process.env[name]) is NOT replaced in the browser bundle.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    "Missing required environment variables: NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY"
+  );
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
@@ -17,8 +26,21 @@ export type Database = {
           country: string | null;
           city: string | null;
           logo_url: string | null;
+          description: string | null;
+          theme_mode: string | null;
+          primary_color: string | null;
+          secondary_color: string | null;
+          font_family: string | null;
+          font_size: string | null;
+          email_cc_admin: boolean | null;
+          email_template_header: string | null;
+          email_template_footer: string | null;
           plan: string;
           is_active: boolean;
+          phone: string | null;
+          email: string | null;
+          address: string | null;
+          data_sharing_consent: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -34,12 +56,33 @@ export type Database = {
           role: string;
           phone: string | null;
           avatar_url: string | null;
+          first_name: string | null;
+          last_name: string | null;
+          display_name: string | null;
+          theme_preference: string | null;
+          notification_preferences: Record<string, unknown> | null;
+          email_preferences: Record<string, unknown> | null;
           is_active: boolean;
+          is_super_admin: boolean;
+          is_mantix_admin: boolean;
+          last_login: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: Omit<Database["public"]["Tables"]["profiles"]["Row"], "created_at" | "updated_at">;
         Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
+      };
+      admin_company_assignments: {
+        Row: {
+          id: string;
+          admin_id: string;
+          company_id: string;
+          assigned_at: string;
+          assigned_by: string | null;
+          updated_at: string;
+        };
+        Insert: Omit<Database["public"]["Tables"]["admin_company_assignments"]["Row"], "id" | "assigned_at" | "updated_at">;
+        Update: Partial<Database["public"]["Tables"]["admin_company_assignments"]["Insert"]>;
       };
       locations: {
         Row: {

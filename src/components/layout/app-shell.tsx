@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 
 import type { Company, User } from "@/types/entities";
 
-import { messages, notifications } from "@/data/mock/platform";
 import { getPageMeta } from "@/lib/navigation";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { TopBar } from "@/components/layout/topbar";
@@ -20,11 +19,19 @@ interface AppShellProps {
 export function AppShell({ children, company, currentUser }: AppShellProps) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.localStorage.getItem("mantix.sidebar.collapsed") === "1";
+  });
   const pageMeta = getPageMeta(pathname);
-  const unreadMessages = messages.filter((message) => message.unread).length;
-  const unreadNotifications = notifications.filter(
-    (notification) => !notification.read,
-  ).length;
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((current) => {
+      const next = !current;
+      window.localStorage.setItem("mantix.sidebar.collapsed", next ? "1" : "0");
+      return next;
+    });
+  };
 
   return (
     <div className="app-shell">
@@ -33,16 +40,18 @@ export function AppShell({ children, company, currentUser }: AppShellProps) {
           company={company}
           currentUser={currentUser}
           pathname={pathname}
+          collapsed={isSidebarCollapsed}
+          onToggleCollapsed={toggleSidebar}
         />
       </div>
 
       <div className="main-area">
         <TopBar
-          notificationCount={unreadNotifications}
+          notificationCount={0}
           onOpenNavigation={() => setMobileOpen(true)}
           subtitle={pageMeta.subtitle}
           title={pageMeta.title}
-          unreadMessages={unreadMessages}
+          unreadMessages={0}
         />
         <main className="page-scroll">{children}</main>
       </div>
@@ -59,6 +68,7 @@ export function AppShell({ children, company, currentUser }: AppShellProps) {
             onNavigate={() => setMobileOpen(false)}
             pathname={pathname}
             mobile
+            collapsed={false}
           />
         </SheetContent>
       </Sheet>

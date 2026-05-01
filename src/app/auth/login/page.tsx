@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { buildAccountStatusRoute, resolveAccessState } from "@/lib/access-state";
 
 // ─── Animación de carga ───────────────────────────────────────────────────────
 
@@ -146,9 +147,10 @@ function LoadingAnimation({ onComplete }: { onComplete: () => void }) {
 
 // ─── Página de login ──────────────────────────────────────────────────────────
 
-export default function LoginPage() {
+function LoginPageInner() {
   const router = useRouter();
-  const { signIn, user, isLoading: authLoading, profile, isSuperAdmin } = useAuth();
+  const searchParams = useSearchParams();
+  const { signIn, user, isLoading: authLoading, profile, isAdminLevel } = useAuth();
 
   const [showAnimation, setShowAnimation] = useState(true);
   const [pageVisible, setPageVisible] = useState(false);
@@ -157,6 +159,9 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Detectar registro exitoso para mostrar banner
+  const justRegistered = searchParams?.get("registered") === "1";
 
   // Fix scroll: globals.css sets overflow:hidden on body for the workspace.
   // Override it for auth pages.
@@ -169,16 +174,24 @@ export default function LoginPage() {
     };
   }, []);
 
-  // Redirect once user + profile are both loaded
+  // Redirect una vez que auth terminó de cargar y hay usuario.
+  // authLoading=false se garantiza UNA SOLA VEZ (ver AuthContext).
+  // Jerarquía: SuperAdmin y MantixAdmin → /admin | usuario con empresa → / | sin empresa → /setup
   useEffect(() => {
-    if (!authLoading && user && profile !== null) {
-      if (isSuperAdmin) {
-        router.replace("/admin");
-      } else {
-        router.replace("/");
-      }
+    if (!authLoading && user) {
+      const state = resolveAccessState({
+        isAuthenticated: Boolean(user),
+        isAdminLevel,
+        profile,
+      });
+
+      if (state === "admin") router.replace("/admin");
+      else if (state === "ready") router.replace("/");
+      else if (state !== "unauthenticated") router.replace(buildAccountStatusRoute(state));
+    } else if (!authLoading && !user) {
+      // No logueado — mostramos el form normalmente (no hacer nada)
     }
-  }, [user, authLoading, isSuperAdmin, profile, router]);
+  }, [user, authLoading, isAdminLevel, profile, router]);
 
   const handleAnimationComplete = () => {
     setShowAnimation(false);
@@ -201,8 +214,6 @@ export default function LoginPage() {
     }
     // Redirect handled by useEffect once user + profile are loaded
   };
-
-  if (authLoading) return null;
 
   return (
     <>
@@ -344,6 +355,12 @@ export default function LoginPage() {
               Ingresá a tu cuenta para continuar.
             </p>
 
+            {justRegistered && (
+              <div style={{ padding: "12px 16px", background: "#f0fdf4", border: "1px solid #bbf7d0", borderRadius: 8, color: "#16a34a", fontSize: 13, marginBottom: 20, lineHeight: 1.5 }}>
+                ✓ <strong>Cuenta creada correctamente.</strong> Iniciá sesión con tu email y contraseña.
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div>
                 <label htmlFor="email" style={labelStyle}>Email</label>
@@ -410,6 +427,12 @@ export default function LoginPage() {
               </Link>
             </p>
 
+            <p style={{ textAlign: "center", marginTop: 12, fontSize: 13, color: "#64748b" }}>
+              <Link href="/auth/forgot-password" style={{ color: "#0ea5e9", fontWeight: 600, textDecoration: "none" }}>
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </p>
+
             <p style={{ textAlign: "center", marginTop: 40, fontSize: 11, color: "#94a3b8" }}>
               ¿Preguntas?{" "}
               <a href="mailto:info@mantix.com.ar" style={{ color: "#0ea5e9", textDecoration: "none" }}>
@@ -439,7 +462,16 @@ const inputStyle: React.CSSProperties = {
   borderRadius: 10,
   fontSize: 14,
   background: "#fff",
+  color: "#0f172a",
   outline: "none",
   transition: "border-color 0.2s",
   boxSizing: "border-box",
 };
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
