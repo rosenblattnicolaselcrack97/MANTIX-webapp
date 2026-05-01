@@ -12,6 +12,9 @@ import {
   UserRound,
   Users,
   Truck,
+  Tag,
+  Zap,
+  LineChart,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -51,7 +54,7 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
         },
         {
           id: "work-orders",
-          title: "Ordenes de trabajo",
+          title: "Órdenes de trabajo",
           href: "/work-orders",
           icon: ClipboardList,
         },
@@ -64,7 +67,7 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
       ],
     },
     {
-      label: "Gestion",
+      label: "Gestión",
       items: [
         {
           id: "parts",
@@ -74,30 +77,48 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
         },
         {
           id: "preventive",
-          title: "Mantenimiento preventivo",
+          title: "Preventivo",
           href: "/preventive",
           icon: ShieldCheck,
         },
         {
+          id: "automatizaciones",
+          title: "Automatizaciones",
+          href: "/automatizaciones",
+          icon: Zap,
+        },
+        {
+          id: "categorias",
+          title: "Categorías",
+          href: "/categorias",
+          icon: Tag,
+        },
+        {
+          id: "reports",
+          title: "Reportes",
+          href: "/reports",
+          icon: LineChart,
+        },
+        {
           id: "finance",
-          title: "Finanzas del mantenimiento",
+          title: "Finanzas",
           href: "/finance-maintenance",
           icon: PiggyBank,
         },
         {
           id: "email-comms",
-          title: "Comunicaciones por email",
+          title: "Comunicaciones",
           href: "/communications-email",
           icon: Mail,
         },
       ],
     },
     {
-      label: "Configuracion",
+      label: "Configuración",
       items: [
         {
           id: "settings",
-          title: "Configuracion",
+          title: "Configuración",
           href: "/settings",
           icon: Settings2,
         },
@@ -128,12 +149,12 @@ const pageMeta = {
     subtitle: "Resumen operativo de tu empresa",
   },
   "/work-orders": {
-    title: "Ordenes de Trabajo",
-    subtitle: "Gestion y seguimiento de intervenciones",
+    title: "Órdenes de Trabajo",
+    subtitle: "Gestión y seguimiento de intervenciones",
   },
   "/work-orders/new": {
     title: "Nueva Orden de Trabajo",
-    subtitle: "Completa los datos para registrar la intervencion",
+    subtitle: "Completá los datos para registrar la intervención",
   },
   "/assets": {
     title: "Activos",
@@ -141,46 +162,54 @@ const pageMeta = {
   },
   "/assets/new": {
     title: "Registrar Nuevo Activo",
-    subtitle: "Completa la informacion del equipo para agregarlo al sistema",
+    subtitle: "Completá la información del equipo para agregarlo al sistema",
   },
   "/providers": {
-    title: "Proveedores y Tecnicos Externos",
+    title: "Proveedores y Técnicos Externos",
     subtitle: "Directorio de contactos de mantenimiento",
   },
   "/locations": {
     title: "Sucursales",
-    subtitle: "Sedes activas de operacion",
+    subtitle: "Sedes activas de operación",
   },
   "/reports": {
-    title: "Reportes y Analisis",
-    subtitle: "Metricas e indicadores operativos",
+    title: "Reportes y Análisis",
+    subtitle: "Métricas e indicadores operativos",
   },
   "/preventive": {
-    title: "Mantenimiento preventivo",
-    subtitle: "Rutinas para mantenimiento programado",
+    title: "Mantenimiento Preventivo",
+    subtitle: "Rutinas y programas de mantenimiento",
   },
   "/parts": {
     title: "Stock y Repuestos",
-    subtitle: "Futuramente disponible",
+    subtitle: "Inventario técnico y alertas de reposición",
+  },
+  "/automatizaciones": {
+    title: "Automatizaciones",
+    subtitle: "Reglas automáticas basadas en eventos del sistema",
+  },
+  "/categorias": {
+    title: "Categorías",
+    subtitle: "Clasificación de activos, órdenes y repuestos",
   },
   "/finance-maintenance": {
     title: "Finanzas del mantenimiento",
-    subtitle: "Futuramente disponible",
+    subtitle: "Costos y presupuestos de intervenciones",
   },
   "/communications-email": {
     title: "Comunicaciones por email",
-    subtitle: "Futuramente disponible",
+    subtitle: "Configuración de notificaciones y plantillas",
   },
   "/settings": {
-    title: "Configuracion",
+    title: "Configuración",
     subtitle: "Ajustes de tu espacio en Mantix",
   },
   "/users": {
     title: "Usuarios",
-    subtitle: "Gestion de usuarios de empresa",
+    subtitle: "Gestión de usuarios de empresa",
   },
   "/account": {
-    title: "Cuenta",
+    title: "Mi Cuenta",
     subtitle: "Resumen de tu cuenta y acceso",
   },
 } as const;
