@@ -11,13 +11,13 @@ Fecha: 2026-05-01
 - `src/lib/access-state.ts`
 - `src/components/auth/ProtectedRoute.tsx`
 - `src/app/auth/login/page.tsx`
-- `src/app/auth/confirm/page.tsx`
+- `src/app/auth/usercheck/page.tsx`
 - `src/app/setup/page.tsx`
 - `src/app/auth/account-status/page.tsx`
 - `src/app/auth/user-approved/page.tsx`
 
 ## Flujo corregido
-- `/auth/confirm` procesa `code` o `token_hash`.
+- `/auth/usercheck` procesa el estado de verificacion y deriva segun acceso.
 - Luego calcula estado con `resolveAccessState`.
 - `ready` va a `/auth/user-approved` y luego login/dashboard.
 - `pending`, `no_company` e `incomplete_profile` van a `/auth/account-status`.

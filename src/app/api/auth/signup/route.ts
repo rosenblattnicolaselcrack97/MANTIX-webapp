@@ -15,7 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, hasServiceRole } from "@/lib/supabase-admin";
 import { sendEmail } from "@/lib/email-service";
-import { buildWelcomeEmail } from "@/lib/email-templates";
+import { buildSignupVerificationEmail } from "@/lib/email-templates";
 
 // ── Busca un usuario en auth.users por email (recorre todas las páginas) ──────
 async function findAuthUserByEmail(email: string) {
@@ -92,7 +92,6 @@ export async function POST(req: NextRequest) {
   if (existingAuthUser) {
     console.log("[signup] Usuario auth encontrado:", existingAuthUser.id);
 
-    // Verificar si tiene perfil en profiles
     const { data: existingProfile } = await supabaseAdmin
       .from("profiles")
       .select("id, company_id, is_active")
@@ -100,89 +99,53 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (existingProfile) {
-      // Tiene perfil → cuenta real, no zombie
       if (existingProfile.is_active === false) {
         return NextResponse.json({
           error: "Esta cuenta está desactivada. Contactá al administrador de tu empresa.",
           code: "USER_DISABLED",
         }, { status: 409 });
       }
+
       return NextResponse.json({
         error: "Este email ya está registrado. Iniciá sesión directamente.",
         code: "USER_EXISTS",
       }, { status: 409 });
     }
 
-    // ── REPARAR ZOMBIE: existe en auth.users pero sin perfil ────────────────
-    console.log("[signup] Zombie detectado, reparando cuenta para:", email);
-
-    // 1. Actualizar contraseña (para que pueda usar la nueva que acaba de ingresar)
-    const { error: updateAuthError } = await supabaseAdmin.auth.admin.updateUserById(
-      existingAuthUser.id,
-      { password, email_confirm: true }
-    );
-    if (updateAuthError) {
-      console.error("[signup] Error actualizando auth user zombie:", updateAuthError);
+    console.log("[signup] Zombie detectado, eliminando cuenta huérfana para:", email);
+    const { error: deleteZombieError } = await supabaseAdmin.auth.admin.deleteUser(existingAuthUser.id);
+    if (deleteZombieError) {
+      console.error("[signup] Error eliminando zombie:", deleteZombieError);
       return NextResponse.json({
-        error: "Error al recuperar la cuenta. Contactá a soporte.",
+        error: "Error al limpiar una cuenta huérfana. Contactá a soporte.",
       }, { status: 500 });
     }
-
-    // 2. Resolver empresa y crear perfil (mismo código que el flujo normal)
-    return await createCompanyAndProfile({
-      userId: existingAuthUser.id,
-      email,
-      fullName,
-      password,
-      companyMode,
-      companyName,
-      companyId,
-    });
   }
 
-  // ── Flujo normal: crear usuario nuevo ────────────────────────────────────
-  console.log("[signup] Creando nuevo usuario en auth:", email);
-  const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+  // ── Generar signup link real con confirmación de email ───────────────────
+  console.log("[signup] Generando link de verificación para:", email);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://mantixarg.com";
+  const verifyRedirectTo = `${siteUrl}/auth/usercheck`;
+
+  const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
+    type: "signup",
     email,
     password,
-    email_confirm: true,
-    user_metadata: { full_name: fullName },
+    options: {
+      data: { full_name: fullName },
+      redirectTo: verifyRedirectTo,
+    },
   });
 
-  if (authError || !authData?.user) {
-    // Supabase dice que ya existe aunque listUsers no lo encontró → buscar y reparar
-    const alreadyExistsMsg =
-      authError?.message?.toLowerCase().includes("already") ||
-      authError?.message?.toLowerCase().includes("registered");
-
-    if (alreadyExistsMsg) {
-      console.warn("[signup] createUser dice 'ya existe', intentando reparar...");
-      const zombie = await findAuthUserByEmail(email);
-      if (zombie) {
-        await supabaseAdmin.auth.admin.updateUserById(zombie.id, {
-          password,
-          email_confirm: true,
-        });
-        return await createCompanyAndProfile({
-          userId: zombie.id,
-          email,
-          fullName,
-          password,
-          companyMode,
-          companyName,
-          companyId,
-        });
-      }
-    }
-
-    console.error("[signup] Error creando usuario en auth:", authError);
-    return NextResponse.json({
-      error: authError?.message ?? "No se pudo crear la cuenta. Intentá de nuevo.",
-    }, { status: 500 });
+  if (linkError || !linkData?.user || !linkData?.properties?.action_link) {
+    const message = linkError?.message ?? "No se pudo crear el enlace de verificación.";
+    console.error("[signup] Error generando link signup:", linkError);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 
-  const userId = authData.user.id;
-  console.log("[signup] Usuario creado en auth:", userId);
+  const userId = linkData.user.id;
+  const verifyUrl = linkData.properties.action_link;
+  console.log("[signup] Usuario y link generados:", userId);
 
   return await createCompanyAndProfile({
     userId,
@@ -193,6 +156,7 @@ export async function POST(req: NextRequest) {
     companyName,
     companyId,
     isNewAuthUser: true, // Para hacer rollback si el perfil falla
+    verifyUrl,
   });
 }
 
@@ -206,6 +170,7 @@ async function createCompanyAndProfile({
   companyName,
   companyId,
   isNewAuthUser = false,
+  verifyUrl,
 }: {
   userId: string;
   email: string;
@@ -215,6 +180,7 @@ async function createCompanyAndProfile({
   companyName?: string;
   companyId?: string;
   isNewAuthUser?: boolean;
+  verifyUrl?: string;
 }) {
   let resolvedCompanyId: string | null = null;
   let resolvedCompanyName: string | null = null;
@@ -258,6 +224,9 @@ async function createCompanyAndProfile({
     resolvedCompanyName = company.name;
   }
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://mantixarg.com";
+  const verifyUrl = `${siteUrl}/auth/usercheck`;
+
   // ── Crear/reparar perfil ──────────────────────────────────────────────────
   console.log("[signup] Creando perfil para userId:", userId);
   const { error: profileError } = await supabaseAdmin
@@ -288,19 +257,24 @@ async function createCompanyAndProfile({
 
   console.log("[signup] Perfil creado OK para:", email);
 
-  // ── Welcome email (no bloquea) ────────────────────────────────────────────
-  try {
-    const tpl = buildWelcomeEmail({ fullName, email, companyName: resolvedCompanyName, role });
-    await sendEmail({
-      to: email,
-      subject: tpl.subject,
-      html: tpl.html,
-      text: tpl.text,
-      meta: { entityType: "user", entityId: userId, companyId: resolvedCompanyId ?? undefined, eventType: "welcome" },
-    });
-  } catch (emailErr) {
-    console.error("[signup] Error enviando email de bienvenida:", emailErr);
-  }
+  const fallbackVerifyUrl = `${process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? "https://mantixarg.com"}/auth/usercheck`;
+  const verificationEmail = buildSignupVerificationEmail({
+    fullName,
+    verifyUrl: verifyUrl ?? fallbackVerifyUrl,
+  });
+
+  void sendEmail({
+    to: email,
+    subject: verificationEmail.subject,
+    html: verificationEmail.html,
+    text: verificationEmail.text,
+    meta: {
+      entityType: "user",
+      entityId: userId,
+      companyId: resolvedCompanyId ?? undefined,
+      eventType: "signup_verification",
+    },
+  });
 
   return NextResponse.json({
     ok: true,

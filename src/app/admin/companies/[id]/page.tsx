@@ -18,6 +18,8 @@ interface CompanyRow {
   id: string; name: string; industry: string | null; cuit: string | null;
   country: string | null; city: string | null; plan: string;
   is_active: boolean; data_sharing_consent: boolean; created_at: string;
+  phone: string | null; email: string | null; address: string | null;
+  description: string | null; primary_color: string | null; secondary_color: string | null;
 }
 interface UserRow {
   id: string; full_name: string; email: string; role: string;
@@ -47,7 +49,7 @@ interface ProviderRow {
   rating: number; total_jobs: number; notes: string | null; is_active: boolean;
   created_at: string;
 }
-type Tab = "overview" | "users" | "assets" | "workorders" | "locations" | "providers";
+type Tab = "overview" | "users" | "assets" | "workorders" | "locations" | "providers" | "parts" | "categories";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const PLANS = ["trial", "starter", "pro", "enterprise"];
@@ -95,8 +97,8 @@ const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
 };
 
 // ─── Shared button styles ─────────────────────────────────────────────────────
-const BTN_ICON = { background: "rgba(255,255,255,0.04)", border: "1px solid #334155", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "#94a3b8", display: "flex", alignItems: "center" };
-const BTN_SECONDARY_SM = { display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 12px", borderRadius: 7, border: "1px solid #334155", background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 12 };
+const BTN_ICON = { background: "var(--s2)", border: "1px solid var(--border)", borderRadius: 6, padding: "5px 8px", cursor: "pointer", color: "var(--t2)", display: "flex", alignItems: "center" };
+const BTN_SECONDARY_SM = { display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "6px 12px", borderRadius: 7, border: "1px solid var(--border)", background: "var(--s2)", color: "var(--t2)", cursor: "pointer", fontSize: 12 };
 const BTN_DANGER_SM = { display: "flex", alignItems: "center", justifyContent: "center", padding: "6px 10px", borderRadius: 7, border: "1px solid rgba(239,68,68,0.3)", background: "rgba(239,68,68,0.08)", color: "#ef4444", cursor: "pointer", fontSize: 12 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -115,10 +117,10 @@ function fmtDate(s: string) {
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 14, width: "100%", maxWidth: 540, maxHeight: "90vh", overflow: "auto" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", borderBottom: "1px solid #334155" }}>
-          <p style={{ fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>{title}</p>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}><X size={18} /></button>
+      <div style={{ background: "var(--s1)", border: "1px solid var(--border)", borderRadius: 14, width: "100%", maxWidth: 540, maxHeight: "90vh", overflow: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", borderBottom: "1px solid var(--border)" }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: "var(--t1)" }}>{title}</p>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t2)" }}><X size={18} /></button>
         </div>
         <div style={{ padding: "20px 22px" }}>{children}</div>
       </div>
@@ -127,8 +129,8 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 }
 
 // ─── Form field helpers ───────────────────────────────────────────────────────
-const inputStyle = { width: "100%", padding: "9px 12px", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, color: "#f1f5f9", fontSize: 13, outline: "none", boxSizing: "border-box" as const };
-const labelStyle = { fontSize: 11, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 5, display: "block" };
+const inputStyle = { width: "100%", padding: "9px 12px", background: "var(--s2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--t1)", fontSize: 13, outline: "none", boxSizing: "border-box" as const };
+const labelStyle = { fontSize: 11, color: "var(--t2)", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 5, display: "block" };
 const selectStyle = { ...inputStyle, cursor: "pointer" };
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -161,49 +163,132 @@ function ConfirmDelete({ name, onConfirm, onCancel, loading }: { name: string; o
 }
 
 // ─── Tab: Overview ───────────────────────────────────────────────────────────
-function OverviewTab({ company, onSave }: { company: CompanyRow; onSave: (u: Partial<CompanyRow>) => Promise<void> }) {
+function OverviewTab({ company, onSave, onToggleActive }: { company: CompanyRow; onSave: (u: Partial<CompanyRow>) => Promise<void>; onToggleActive: () => Promise<void> }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ name: company.name, industry: company.industry ?? "", cuit: company.cuit ?? "", country: company.country ?? "", city: company.city ?? "", plan: company.plan });
+  const [toggling, setToggling] = useState(false);
+  const [form, setForm] = useState({
+    name: company.name, industry: company.industry ?? "", cuit: company.cuit ?? "",
+    country: company.country ?? "", city: company.city ?? "", plan: company.plan,
+    phone: company.phone ?? "", email: company.email ?? "", address: company.address ?? "",
+    description: company.description ?? "",
+    primary_color: company.primary_color ?? "#0ea5e9",
+    secondary_color: company.secondary_color ?? "#14b8a6",
+  });
 
   const handleSave = async () => {
     setSaving(true);
-    await onSave({ name: form.name.trim() || company.name, industry: form.industry.trim() || null, cuit: form.cuit.trim() || null, country: form.country.trim() || null, city: form.city.trim() || null, plan: form.plan });
+    await onSave({
+      name: form.name.trim() || company.name,
+      industry: form.industry.trim() || null,
+      cuit: form.cuit.trim() || null,
+      country: form.country.trim() || null,
+      city: form.city.trim() || null,
+      plan: form.plan,
+      phone: form.phone.trim() || null,
+      email: form.email.trim() || null,
+      address: form.address.trim() || null,
+      description: form.description.trim() || null,
+      primary_color: form.primary_color || null,
+      secondary_color: form.secondary_color || null,
+    });
     setSaving(false); setEditing(false);
   };
 
-  const field = (lbl: string, key: keyof typeof form, type: "text" | "select" = "text") => (
+  const txt = (lbl: string, key: keyof typeof form) => (
     <div key={lbl}>
       <p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{lbl}</p>
-      {editing ? (
-        type === "select"
-          ? <select value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ width: "100%", padding: "8px 10px", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, color: "#f1f5f9", fontSize: 13 }}>{PLANS.map((p) => <option key={p} value={p}>{p}</option>)}</select>
-          : <input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ width: "100%", padding: "8px 10px", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, color: "#f1f5f9", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-      ) : (
-        <p style={{ fontSize: 14, color: form[key] ? "#e2e8f0" : "#334155", fontStyle: form[key] ? "normal" : "italic" }}>{form[key] || "—"}</p>
-      )}
+      {editing
+        ? <input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ ...inputStyle, boxSizing: "border-box" }} />
+        : <p style={{ fontSize: 14, color: form[key] ? "#e2e8f0" : "#334155", fontStyle: form[key] ? "normal" : "italic" }}>{(form[key] as string) || "—"}</p>}
     </div>
   );
 
   return (
     <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 20, gap: 8 }}>
-        {editing ? (
-          <>
-            <button onClick={() => setEditing(false)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "1px solid #334155", background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}><X size={14} /> Cancelar</button>
-            <button onClick={handleSave} disabled={saving} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, opacity: saving ? 0.7 : 1 }}><Save size={14} />{saving ? "Guardando..." : "Guardar"}</button>
-          </>
-        ) : (
-          <button onClick={() => setEditing(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "1px solid #334155", background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}><Edit2 size={14} /> Editar empresa</button>
-        )}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20, gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={async () => { setToggling(true); await onToggleActive(); setToggling(false); }}
+            disabled={toggling}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "1px solid #334155", background: company.is_active ? "rgba(239,68,68,0.08)" : "rgba(16,185,129,0.08)", color: company.is_active ? "#ef4444" : "#10b981", cursor: "pointer", fontSize: 13, fontWeight: 600, opacity: toggling ? 0.5 : 1 }}
+          >
+            {company.is_active ? <AlertCircle size={14} /> : <CheckCircle2 size={14} />}
+            {company.is_active ? "Desactivar empresa" : "Activar empresa"}
+          </button>
+        </div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {editing ? (
+            <>
+              <button onClick={() => setEditing(false)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "1px solid #334155", background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}><X size={14} /> Cancelar</button>
+              <button onClick={handleSave} disabled={saving} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, opacity: saving ? 0.7 : 1 }}><Save size={14} />{saving ? "Guardando..." : "Guardar"}</button>
+            </>
+          ) : (
+            <button onClick={() => setEditing(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, border: "1px solid #334155", background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}><Edit2 size={14} /> Editar empresa</button>
+          )}
+        </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 20 }}>
-        {field("Nombre", "name")}{field("Industria", "industry")}{field("Plan", "plan", "select")}{field("CUIT", "cuit")}{field("País", "country")}{field("Ciudad", "city")}
+
+      {/* Datos principales */}
+      <p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14, fontWeight: 700 }}>Datos generales</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18, marginBottom: 24 }}>
+        {txt("Nombre", "name")}
+        {txt("Industria", "industry")}
+        <div>
+          <p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Plan</p>
+          {editing
+            ? <select value={form.plan} onChange={(e) => setForm((f) => ({ ...f, plan: e.target.value }))} style={{ ...selectStyle, boxSizing: "border-box" as const }}>{PLANS.map((p) => <option key={p} value={p}>{p}</option>)}</select>
+            : <Badge label={form.plan} colors={PLAN_COLORS[form.plan] ?? PLAN_COLORS.trial} />}
+        </div>
+        {txt("CUIT", "cuit")}
+        {txt("País", "country")}
+        {txt("Ciudad", "city")}
       </div>
-      <div style={{ marginTop: 28, paddingTop: 20, borderTop: "1px solid #1e293b", display: "flex", gap: 24, flexWrap: "wrap" }}>
+
+      {/* Contacto */}
+      <p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14, fontWeight: 700 }}>Contacto</p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 18, marginBottom: 24 }}>
+        {txt("Teléfono", "phone")}
+        {txt("Email", "email")}
+        {txt("Dirección", "address")}
+        <div style={{ gridColumn: "1 / -1" }}>
+          <p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>Descripción</p>
+          {editing
+            ? <textarea value={form.description} onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))} rows={2} style={{ ...inputStyle, resize: "vertical", boxSizing: "border-box" as const }} />
+            : <p style={{ fontSize: 14, color: form.description ? "#e2e8f0" : "#334155", fontStyle: form.description ? "normal" : "italic" }}>{form.description || "—"}</p>}
+        </div>
+      </div>
+
+      {/* Branding */}
+      <p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 14, fontWeight: 700 }}>Branding / Colores</p>
+      <div style={{ display: "flex", gap: 24, flexWrap: "wrap", marginBottom: 24 }}>
+        {[
+          { lbl: "Color primario",   key: "primary_color"   as const },
+          { lbl: "Color secundario", key: "secondary_color" as const },
+        ].map(({ lbl, key }) => (
+          <div key={key}>
+            <p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 6 }}>{lbl}</p>
+            {editing ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <input type="color" value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ width: 36, height: 36, borderRadius: 8, border: "1px solid #334155", cursor: "pointer", padding: 2 }} />
+                <input value={form[key]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} style={{ ...inputStyle, width: 110, boxSizing: "border-box" }} placeholder="#0ea5e9" />
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: "50%", background: form[key], border: "2px solid #334155" }} />
+                <span style={{ fontSize: 13, color: "#94a3b8", fontFamily: "monospace" }}>{form[key]}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      {/* Meta */}
+      <div style={{ paddingTop: 16, borderTop: "1px solid #1e293b", display: "flex", gap: 24, flexWrap: "wrap" }}>
         <div><p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Estado</p><Badge label={company.is_active ? "Activa" : "Inactiva"} colors={company.is_active ? { bg: "rgba(16,185,129,0.12)", text: "#10b981" } : { bg: "rgba(239,68,68,0.12)", text: "#ef4444" }} /></div>
         <div><p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Datos</p><Badge label={company.data_sharing_consent ? "Compartidos" : "Privados"} colors={company.data_sharing_consent ? { bg: "rgba(16,185,129,0.12)", text: "#10b981" } : { bg: "rgba(100,116,139,0.12)", text: "#64748b" }} /></div>
         <div><p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>Creada</p><p style={{ fontSize: 13, color: "#94a3b8" }}>{fmtDate(company.created_at)}</p></div>
+        <div><p style={{ fontSize: 11, color: "#475569", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 4 }}>ID</p><p style={{ fontSize: 11, color: "#475569", fontFamily: "monospace" }}>{company.id}</p></div>
       </div>
     </div>
   );

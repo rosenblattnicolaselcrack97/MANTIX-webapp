@@ -17,7 +17,7 @@ interface CompanyUserRow {
   created_at: string;
 }
 
-const ROLE_OPTIONS = ["admin", "manager", "technician", "viewer", "supervisor", "financiero", "solo_lectura"];
+const ROLE_OPTIONS = ["owner", "admin", "gerente", "supervisor", "tecnico", "solo_lectura", "externo"];
 
 export default function CompanyUsersPage() {
   const { profile } = useAuth();
@@ -311,36 +311,6 @@ export default function CompanyUsersPage() {
           )}
         </CardContent>
       </Card>
-
-      <style>{`
-        .btn-primary {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border: none;
-          border-radius: 10px;
-          padding: 10px 14px;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          color: #fff;
-          background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-          text-decoration: none;
-        }
-        .btn-secondary {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          padding: 8px 10px;
-          font-size: 12px;
-          font-weight: 700;
-          color: var(--t1);
-          background: var(--s2);
-          text-decoration: none;
-        }
-      `}</style>
     </div>
   );
 }

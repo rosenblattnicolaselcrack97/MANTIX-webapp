@@ -1,4 +1,3 @@
-import { messages } from "@/data/mock/platform";
 import type { Message, OverviewMetric } from "@/types/entities";
 
 export interface MessagesOverview {
@@ -8,26 +7,21 @@ export interface MessagesOverview {
 }
 
 export async function getMessagesOverview(): Promise<MessagesOverview> {
-  const unreadMessages = messages.filter((message) => message.unread).length;
-  const providerThreads = messages.filter(
-    (message) => message.channel === "provider",
-  ).length;
-
   return {
     metrics: [
-      { label: "Sin leer", value: String(unreadMessages), tone: "danger" },
+      { label: "Sin leer", value: "0", tone: "danger" },
       {
         label: "Hilos con proveedores",
-        value: String(providerThreads),
+        value: "0",
         tone: "brand",
       },
       {
         label: "Conversaciones activas",
-        value: String(messages.length),
+        value: "0",
         tone: "warning",
       },
     ],
-    items: messages,
+    items: [] as Message[],
     nextMilestone:
       "Siguiente etapa: inbox real, filtros por canal y adjuntos por conversación.",
   };

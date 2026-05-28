@@ -1,10 +1,10 @@
 # PAGINA USER APPROVED
 
 ## Ruta
-- `/auth/user-approved`
+- `/auth/usercheck`
 
 ## Objetivo
-- Mostrar una confirmacion profesional despues de que Supabase procesa confirmacion o invitacion.
+- Mostrar una confirmacion profesional despues de que Supabase procesa el link de verificacion.
 - No dispara onboarding de empresa.
 - Si existe sesion valida, permite ir al dashboard; si no, invita a ir al login.
 
@@ -15,8 +15,8 @@
 - Redirige automaticamente a `/auth/login` luego de unos segundos.
 
 ## Archivos
+- `src/app/auth/usercheck/page.tsx`
 - `src/app/auth/user-approved/page.tsx`
-- `src/app/auth/confirm/page.tsx`
 
 ## Prueba
 - Confirmar usuario con empresa.

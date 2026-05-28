@@ -9,6 +9,7 @@
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://mantixarg.com";
 const LOGIN_URL = `${SITE_URL}/auth/login`;
+const MANTIX_LOGO_URL = `${SITE_URL}/logos/logo-full.png`;
 
 // ─── Estilos base compartidos ─────────────────────────────────────────────────
 
@@ -141,6 +142,120 @@ Equipo Mantix
 
   return {
     subject: "Bienvenido a Mantix — tu cuenta fue creada",
+    html,
+    text,
+  };
+}
+
+// ─── Template: Verificación de cuenta ────────────────────────────────────────
+
+export interface SignupVerificationEmailData {
+  fullName: string;
+  verifyUrl: string;
+}
+
+export function buildSignupVerificationEmail(data: SignupVerificationEmailData): { subject: string; html: string; text: string } {
+  const firstName = data.fullName.split(" ")[0] || "Hola";
+
+  const html = `
+  <div style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
+      <div style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+        <div style="background:linear-gradient(135deg,#0a0f1e 0%,#0d1b3e 100%);padding:28px 32px;text-align:center;">
+          <img src="${MANTIX_LOGO_URL}" alt="Mantix" width="164" style="display:block;margin:0 auto;max-width:100%;height:auto;" />
+        </div>
+        <div style="padding:32px;">
+          <p style="margin:0 0 10px;font-size:20px;font-weight:700;color:#0f172a;">Hola, ${firstName}.</p>
+          <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#475569;">
+            Tu cuenta en Mantix fue creada correctamente. Tocá el botón para confirmar el alta y seguir a tu acceso.
+          </p>
+          <div style="text-align:center;margin-bottom:18px;">
+            <a href="${data.verifyUrl}" style="display:inline-block;background:linear-gradient(135deg,#00d4aa,#0ea5e9);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:14px 28px;border-radius:10px;">
+              Verificar mi cuenta
+            </a>
+          </div>
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;text-align:center;">
+            Si no solicitaste este registro, ignorá este mensaje.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  const text = `
+Hola, ${firstName}.
+
+Tu cuenta en Mantix fue creada correctamente.
+
+Verificá tu cuenta desde:
+${data.verifyUrl}
+
+Si no solicitaste este registro, ignorá este mensaje.
+
+Equipo Mantix
+`.trim();
+
+  return {
+    subject: "Verificá tu cuenta de Mantix",
+    html,
+    text,
+  };
+}
+
+// ─── Template: Recuperación de contraseña ───────────────────────────────────
+
+export interface PasswordRecoveryEmailData {
+  fullName?: string | null;
+  recoveryUrl: string;
+}
+
+export function buildPasswordRecoveryEmail(data: PasswordRecoveryEmailData): { subject: string; html: string; text: string } {
+  const firstName = data.fullName?.trim()?.split(" ")[0] || "Hola";
+
+  const html = `
+  <div style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <div style="max-width:560px;margin:0 auto;padding:40px 20px;">
+      <div style="background:#ffffff;border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.06);">
+        <div style="background:linear-gradient(135deg,#0a0f1e 0%,#0d1b3e 100%);padding:28px 32px;text-align:center;">
+          <img src="${MANTIX_LOGO_URL}" alt="Mantix" width="164" style="display:block;margin:0 auto;max-width:100%;height:auto;" />
+        </div>
+        <div style="padding:32px;">
+          <p style="margin:0 0 10px;font-size:20px;font-weight:700;color:#0f172a;">Hola, ${firstName}.</p>
+          <p style="margin:0 0 24px;font-size:15px;line-height:1.7;color:#475569;">
+            Recibimos una solicitud para restablecer tu contraseña de Mantix. Si fuiste vos, continuá desde el botón.
+          </p>
+          <div style="text-align:center;margin-bottom:18px;">
+            <a href="${data.recoveryUrl}" style="display:inline-block;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:14px 28px;border-radius:10px;">
+              Restablecer contraseña
+            </a>
+          </div>
+          <p style="margin:0 0 10px;font-size:13px;line-height:1.6;color:#64748b;text-align:center;">
+            Este enlace es de uso único y vence automáticamente por seguridad.
+          </p>
+          <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;text-align:center;">
+            Si no solicitaste este cambio, ignorá este mensaje.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+  const text = `
+Hola, ${firstName}.
+
+Recibimos una solicitud para restablecer tu contraseña de Mantix.
+
+Restablecé tu contraseña desde:
+${data.recoveryUrl}
+
+Este enlace es de uso único y vence automáticamente por seguridad.
+Si no solicitaste este cambio, ignorá este mensaje.
+
+Equipo Mantix
+`.trim();
+
+  return {
+    subject: "Restablecé tu contraseña de Mantix",
     html,
     text,
   };

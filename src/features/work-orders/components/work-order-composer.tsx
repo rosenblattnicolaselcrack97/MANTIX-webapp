@@ -107,9 +107,18 @@ export function WorkOrderComposer({
         created_by: profile.id,
         title,
         description: draft.description.trim(),
-        type: draft.type === "preventivo" ? "preventive" : "corrective",
-        priority: draft.priority === "medium" ? "normal" : draft.priority,
-        status: draft.status === "open" ? "pending" : draft.status,
+        type:
+          draft.type === "preventivo"
+            ? "preventive"
+            : draft.type === "predictivo"
+              ? "predictive"
+              : draft.type === "inspeccion"
+                ? "inspection"
+                : draft.type === "mejora"
+                  ? "improvement"
+                  : "corrective",
+        priority: draft.priority === "urgent" ? "critical" : draft.priority,
+        status: draft.status === "open" ? "draft" : draft.status,
         resolution_type: draft.resolution,
         due_date: draft.dueAt || null,
       });
@@ -185,6 +194,9 @@ export function WorkOrderComposer({
                     >
                       <option value="correctivo">Correctivo</option>
                       <option value="preventivo">Preventivo</option>
+                      <option value="predictivo">Predictivo</option>
+                      <option value="inspeccion">Inspección</option>
+                      <option value="mejora">Mejora</option>
                     </select>
                   </label>
                 </div>
@@ -223,7 +235,7 @@ export function WorkOrderComposer({
                       {[
                         ["low", "Baja", "active-success"],
                         ["high", "Alta", "active-warning"],
-                        ["urgent", "Urgente", "active-danger"],
+                        ["urgent", "Crítica", "active-danger"],
                       ].map(([value, label, className]) => (
                         <button
                           className={cn(
@@ -358,24 +370,10 @@ export function WorkOrderComposer({
           <Card className="mantix-card">
             <CardContent className="p-5">
               <div className="card-title-row">
-                <div className="card-title">
-                  Asistente IA <span className="ia-tag">✦ IA</span>
-                </div>
+                <div className="card-title">Guía operativa</div>
               </div>
-              <div className="rounded-[10px] border border-brand/20 bg-brand/8 p-4 text-[13px] leading-6 text-muted">
-                Basado en el historial del{" "}
-                <strong className="text-foreground">
-                  {selectedAsset?.name ?? "activo seleccionado"}
-                </strong>
-                , la IA sugiere una inspeccion corta antes de ejecutar y dejar
-                registrada la OT relacionada si esta tarea continua una falla previa.
-              </div>
-              <div className="mt-2 rounded-[10px] border border-line bg-surface-alt p-3 text-[12px] text-muted">
-                <strong className="text-brand">Posible causa:</strong> desgaste o
-                mantenimiento vencido.
-              </div>
-              <div className="mt-2 rounded-[10px] border border-line bg-surface-alt p-3 text-[12px] text-muted">
-                <strong className="text-brand">Tiempo estimado:</strong> 2 a 3 horas.
+              <div className="rounded-[10px] border border-line bg-surface-alt p-4 text-[13px] leading-6 text-muted">
+                Antes de cerrar la OT, validá checklist, horas y repuestos consumidos para que el sistema registre costos y movimientos de stock correctamente.
               </div>
             </CardContent>
           </Card>

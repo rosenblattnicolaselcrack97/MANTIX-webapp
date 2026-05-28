@@ -1,4 +1,3 @@
-import { providers } from "@/data/mock/platform";
 import type { OverviewMetric, Provider } from "@/types/entities";
 
 export interface ProvidersOverview {
@@ -8,33 +7,21 @@ export interface ProvidersOverview {
 }
 
 export async function getProvidersOverview(): Promise<ProvidersOverview> {
-  const activeProviders = providers.filter(
-    (provider) => provider.status === "active",
-  ).length;
-  const averageRating =
-    providers.reduce((total, provider) => total + provider.rating, 0) /
-    providers.length;
-
   return {
     metrics: [
-      { label: "Activos", value: String(activeProviders), tone: "brand" },
+      { label: "Activos", value: "0", tone: "brand" },
       {
         label: "Rating promedio",
-        value: averageRating.toFixed(1),
+        value: "0.0",
         tone: "success",
       },
       {
         label: "OT en curso",
-        value: String(
-          providers.reduce(
-            (total, provider) => total + provider.activeOrders,
-            0,
-          ),
-        ),
+        value: "0",
         tone: "warning",
       },
     ],
-    items: providers,
+    items: [] as Provider[],
     nextMilestone:
       "Siguiente etapa: onboarding, evaluaciones y contratos vinculados a órdenes.",
   };

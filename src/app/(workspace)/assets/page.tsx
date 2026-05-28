@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 
 interface AssetRow {
   id: string;
+  type?: string | null;
   name: string;
   internal_code: string | null;
   category: string | null;
@@ -46,6 +47,7 @@ const ASSET_STATUS_LABELS: Record<string, string> = {
 export default function AssetsPage() {
   const { profile } = useAuth();
   const [items, setItems] = useState<AssetRow[]>([]);
+  const [activeTypeTab, setActiveTypeTab] = useState<string>("all");
   const [companyName, setCompanyName] = useState("Mantix");
   const [isLoading, setIsLoading] = useState(true);
   const [query, setQuery] = useState("");
@@ -66,8 +68,15 @@ export default function AssetsPage() {
 
       setIsLoading(true);
 
-      const [companyResult, extendedAssetsResult] = await Promise.all([
+      const [companyResult, physicalInventoryResult, extendedAssetsResult] = await Promise.all([
         supabase.from("companies").select("name").eq("id", profile.company_id).maybeSingle(),
+        supabase
+          .from("physical_inventory")
+          .select(
+            "id, type, name, code, description, brand, model, serial_number, status, criticality, primary_location_id, supplier_id, category_id, created_at, updated_at",
+          )
+          .eq("company_id", profile.company_id)
+          .order("created_at", { ascending: false }),
         supabase
           .from("assets")
           .select(
@@ -77,7 +86,33 @@ export default function AssetsPage() {
           .order("created_at", { ascending: false }),
       ]);
 
-      const assets: AssetRow[] = extendedAssetsResult.error
+      const inventoryFromUnified: AssetRow[] =
+        physicalInventoryResult.error || !physicalInventoryResult.data
+          ? []
+          : physicalInventoryResult.data.map((item) => ({
+              id: item.id,
+              type: item.type,
+              name: item.name,
+              internal_code: item.code,
+              category: null,
+              status: item.status,
+              criticality: item.criticality,
+              last_maintenance_at: null,
+              next_maintenance_at: null,
+              location_id: item.primary_location_id,
+              manufacturer: item.brand,
+              model: item.model,
+              serial_number: item.serial_number,
+              responsible_name: null,
+              maintenance_frequency_number: null,
+              maintenance_frequency_unit: null,
+              acquisition_value: null,
+              acquisition_currency: null,
+            }));
+
+      const assets: AssetRow[] = inventoryFromUnified.length
+        ? inventoryFromUnified
+        : extendedAssetsResult.error
         ? (((
             await supabase
               .from("assets")
@@ -139,6 +174,10 @@ export default function AssetsPage() {
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return items.filter((asset) => {
+      const matchesType =
+        activeTypeTab === "all" ||
+        (activeTypeTab === "maintainable" && (!asset.type || asset.type === "maintainable")) ||
+        asset.type === activeTypeTab;
       const matchesQuery =
         !normalizedQuery ||
         [asset.name, asset.internal_code, asset.category, asset.location_name, asset.area_name, asset.manufacturer, asset.model, asset.responsible_name]
@@ -146,9 +185,9 @@ export default function AssetsPage() {
           .some((value) => String(value).toLowerCase().includes(normalizedQuery));
       const matchesStatus = statusFilter === "all" || asset.status === statusFilter;
       const matchesCriticality = criticalityFilter === "all" || asset.criticality === criticalityFilter;
-      return matchesQuery && matchesStatus && matchesCriticality;
+      return matchesType && matchesQuery && matchesStatus && matchesCriticality;
     });
-  }, [criticalityFilter, items, query, statusFilter]);
+  }, [activeTypeTab, criticalityFilter, items, query, statusFilter]);
 
   const attentionCount = items.filter((asset) => asset.status === "critical" || asset.status === "review").length;
   const scheduledCount = items.filter((asset) => asset.maintenance_frequency_number && asset.maintenance_frequency_unit).length;
@@ -165,15 +204,30 @@ export default function AssetsPage() {
             </Button>
           </div>
         }
-        subtitle={`${items.length} activos registrados · ${attentionCount} requieren atención`}
-        title="Activos"
+        subtitle={`${items.length} ítems registrados · ${attentionCount} requieren atención`}
+        title="Inventario Físico"
       />
+
+      <div className="filter-bar mb-4">
+        {[
+          ["all", "Todos"],
+          ["maintainable", "Activos"],
+          ["component", "Componentes"],
+          ["spare", "Repuestos / Consumibles"],
+          ["tool", "Herramientas"],
+          ["installation", "Instalaciones"],
+        ].map(([value, label]) => (
+          <button key={value} className={`filter-chip ${activeTypeTab === value ? "active" : ""}`} onClick={() => setActiveTypeTab(value)}>
+            {label}
+          </button>
+        ))}
+      </div>
 
       <Card className="mantix-card mb-5">
         <CardContent className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-5">
           <label className="space-y-2 xl:col-span-2">
             <span className="form-label">Buscar activo</span>
-            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, código, ubicación, responsable..." />
+            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Nombre, código, ubicación, marca, modelo..." />
           </label>
           <label className="space-y-2">
             <span className="form-label">Estado</span>
@@ -216,7 +270,7 @@ export default function AssetsPage() {
         <WorkspaceEmptyState
           actionHref="/assets/new"
           actionLabel="Crear primer activo"
-          description="Todavía no hay activos visibles con los filtros actuales. Cuando cargues el primero o limpies filtros, esta vista mostrará estado, ubicación, criticidad y campos core reales."
+          description="Todavía no hay inventario físico visible con los filtros actuales. Cuando cargues el primero o limpies filtros, esta vista mostrará estado, ubicación, criticidad y datos operativos reales."
           title="No hay activos visibles"
         />
       ) : (

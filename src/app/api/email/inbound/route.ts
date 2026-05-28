@@ -20,6 +20,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { supabaseAdmin } from "@/lib/supabase-admin";
 
 // Formato esperado del destinatario: reply+{entityType}_{entityId}@reply.mantixarg.com
@@ -38,6 +39,8 @@ interface InboundEmailPayload {
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  const rawBody = await req.text();
+
   // ── 1. Validar firma del webhook ──────────────────────────────────────────
   const webhookSecret = process.env.MANTIX_WEBHOOK_SECRET;
 
@@ -53,14 +56,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // TODO: Implementar validación HMAC específica para cada proveedor
-    // Por ahora se acepta si la firma está presente (implementar cuando se conecte proveedor real)
+    const genericSignature = req.headers.get("x-webhook-signature");
+    if (genericSignature && !isSignatureValid(genericSignature, rawBody, webhookSecret)) {
+      return NextResponse.json(
+        { error: "Invalid webhook signature" },
+        { status: 401 }
+      );
+    }
   }
 
   // ── 2. Parsear payload ────────────────────────────────────────────────────
   let body: InboundEmailPayload;
   try {
-    body = await req.json() as InboundEmailPayload;
+    body = JSON.parse(rawBody) as InboundEmailPayload;
   } catch {
     return NextResponse.json({ error: "Invalid JSON payload" }, { status: 400 });
   }
@@ -123,14 +131,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     });
   }
 
-  // ── 6. Actualizar entidad relacionada (TODO) ──────────────────────────────
+  // ── 6. Actualizar entidad relacionada ─────────────────────────────────────
   if (entityType === "work_order" && entityId) {
-    // TODO: Agregar comentario a la OT, actualizar estado si corresponde
-    // const updateResult = await updateWorkOrderFromEmail(entityId, body);
+    await appendEmailNoteToEntity("work_orders", entityId, fromEmail, subject, body.text);
   }
 
   if (entityType === "asset" && entityId) {
-    // TODO: Agregar nota al activo
+    await appendEmailNoteToEntity("assets", entityId, fromEmail, subject, body.text);
   }
 
   // ── 7. Responder OK ───────────────────────────────────────────────────────
@@ -150,4 +157,58 @@ function detectProvider(req: NextRequest): string {
   if (req.headers.get("x-mailgun-signature")) return "mailgun";
   if (req.headers.get("x-postmark-signature")) return "postmark";
   return "unknown";
+}
+
+function isSignatureValid(signatureHeader: string, body: string, secret: string): boolean {
+  const normalizedSignature = signatureHeader.replace(/^sha256=/i, "").trim();
+  const digest = createHmac("sha256", secret).update(body).digest("hex");
+
+  const received = Buffer.from(normalizedSignature, "utf8");
+  const expected = Buffer.from(digest, "utf8");
+
+  if (received.length !== expected.length) {
+    return false;
+  }
+
+  return timingSafeEqual(received, expected);
+}
+
+async function appendEmailNoteToEntity(
+  table: "work_orders" | "assets",
+  entityId: string,
+  fromEmail: string,
+  subject: string,
+  text?: string,
+): Promise<void> {
+  const preview = (text ?? "(sin cuerpo)").trim().slice(0, 800);
+  const entry = [
+    "",
+    `--- Email inbound ${new Date().toISOString()} ---`,
+    `From: ${fromEmail}`,
+    `Subject: ${subject}`,
+    preview,
+  ].join("\n");
+
+  const { data, error } = await supabaseAdmin
+    .from(table)
+    .select("notes")
+    .eq("id", entityId)
+    .maybeSingle();
+
+  if (error || !data) {
+    console.error(`[email/inbound] Could not load ${table} ${entityId}:`, error);
+    return;
+  }
+
+  const currentNotes = typeof data.notes === "string" ? data.notes : "";
+  const nextNotes = `${currentNotes}${entry}`.slice(0, 15000);
+
+  const { error: updateError } = await supabaseAdmin
+    .from(table)
+    .update({ notes: nextNotes })
+    .eq("id", entityId);
+
+  if (updateError) {
+    console.error(`[email/inbound] Could not update notes for ${table} ${entityId}:`, updateError);
+  }
 }

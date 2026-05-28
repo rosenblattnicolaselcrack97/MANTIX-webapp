@@ -1014,6 +1014,8 @@ tbody tr:hover td {
 }
 
 .form-control {
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   border: 1.5px solid var(--border);
   border-radius: 10px;
@@ -1034,6 +1036,33 @@ tbody tr:hover td {
 .form-control:focus {
   border-color: var(--blue);
   box-shadow: 0 0 0 3px rgba(30, 122, 255, 0.1);
+}
+
+select.form-control {
+  cursor: pointer;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--t2) 50%),
+    linear-gradient(135deg, var(--t2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 11px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 34px;
+}
+
+textarea.form-control {
+  min-height: 96px;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.form-control:disabled,
+select.form-control:disabled,
+textarea.form-control:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background-color: var(--s3);
 }
 
 .form-label {
@@ -1815,6 +1844,11 @@ tbody tr:hover td {
   cursor: not-allowed;
 }
 
+.btn-primary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 122, 255, 0.2);
+}
+
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -1843,6 +1877,11 @@ tbody tr:hover td {
   cursor: not-allowed;
 }
 
+.btn-secondary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 122, 255, 0.2);
+}
+
 .btn-danger {
   display: inline-flex;
   align-items: center;
@@ -1869,6 +1908,13 @@ tbody tr:hover td {
 .btn-danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.btn-danger:focus-visible,
+.btn-ghost:focus-visible,
+.btn-success:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(30, 122, 255, 0.2);
 }
 
 .btn-ghost {

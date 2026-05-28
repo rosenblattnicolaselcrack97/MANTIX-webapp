@@ -9,8 +9,8 @@
 ## AUTH
 - [ ] Crear usuario nuevo.
 - [ ] Aprobar/verificar por email.
-- [ ] Confirmar que el link llega a `/auth/confirm`.
-- [ ] Confirmar que `/auth/confirm` termina en `/auth/user-approved`.
+- [ ] Confirmar que el link llega a `/auth/usercheck`.
+- [ ] Confirmar que `/auth/usercheck` deriva al dashboard correcto.
 - [ ] Confirmar redireccion automatica a `/auth/login`.
 - [ ] Loguear usuario aprobado con empresa.
 - [ ] Confirmar que NO pregunta empresa nuevamente.
@@ -22,8 +22,8 @@
 - [ ] Revisar `docs/email-templates/account-approved.html`.
 - [ ] Revisar `docs/email-templates/account-approved.txt`.
 - [ ] Confirmar badge cuenta aprobada.
-- [ ] Confirmar boton con `{{ .ConfirmationURL }}`.
-- [ ] Confirmar Redirect URL Supabase: `https://mantixarg.com/auth/confirm`.
+- [ ] Confirmar boton con link de verificacion generado.
+- [ ] Confirmar Redirect URL Supabase: `https://mantixarg.com/auth/usercheck`.
 
 ## CONFIG USUARIO
 - [ ] Cambiar nombre/apellido/display name.

@@ -1,9 +1,3 @@
-import {
-  dashboardKpis,
-  dashboardWorkOrders,
-  trackedAssets,
-} from "@/data/mock/dashboard";
-import { mantixCompany } from "@/data/mock/platform";
 import type { OverviewMetric } from "@/types/entities";
 
 export interface ReportsOverview {
@@ -12,29 +6,15 @@ export interface ReportsOverview {
 }
 
 export async function getReportsOverview(): Promise<ReportsOverview> {
-  const availability =
-    100 -
-    Math.round(
-      (trackedAssets.filter((asset) => asset.status === "critical").length /
-        trackedAssets.length) *
-        100,
-    );
-  const completedOrders = dashboardWorkOrders.filter(
-    (order) => order.status === "completed",
-  ).length;
-  const compliance =
-    dashboardKpis.find((kpi) => kpi.id === "kpi-compliance")?.value ??
-    `${mantixCompany.complianceScore}%`;
-
   return {
     metrics: [
-      { label: "Cumplimiento", value: compliance, tone: "success" },
+      { label: "Cumplimiento", value: "0%", tone: "success" },
       {
         label: "Disponibilidad estimada",
-        value: `${availability}%`,
+        value: "0%",
         tone: "brand",
       },
-      { label: "OT cerradas", value: String(completedOrders), tone: "warning" },
+      { label: "OT cerradas", value: "0", tone: "warning" },
     ],
     nextMilestone:
       "Siguiente etapa: dashboards analíticos, exportables y cortes por sede/categoría.",

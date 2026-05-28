@@ -193,6 +193,104 @@ function LoginPageInner() {
     }
   }, [user, authLoading, isAdminLevel, profile, router]);
 
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+        background:
+          "radial-gradient(circle at top, rgba(14,165,233,0.14) 0%, transparent 36%), linear-gradient(145deg, #081120 0%, #0f172a 52%, #020617 100%)",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        boxSizing: "border-box",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 420,
+          background: "#f8fafc",
+          border: "1px solid rgba(148,163,184,0.24)",
+          borderRadius: 20,
+          padding: 28,
+          boxShadow: "0 24px 72px rgba(2,6,23,0.45)",
+          boxSizing: "border-box",
+        }}
+      >
+        <h1 style={{ margin: 0, fontSize: 28, lineHeight: 1.15, color: "#0f172a", textAlign: "center" }}>
+          Ingresá a tu cuenta
+        </h1>
+
+        <form onSubmit={handleSubmit} style={{ marginTop: 24, display: "grid", gap: 14 }}>
+          <div>
+            <label htmlFor="email" style={labelStyle}>
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder="tu@empresa.com"
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="password" style={labelStyle}>
+              Contraseña
+            </label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="Tu contraseña"
+              style={inputStyle}
+            />
+          </div>
+
+          {error ? (
+            <div style={{ borderRadius: 12, background: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca", padding: "10px 12px", fontSize: 13, lineHeight: 1.5 }}>
+              {error}
+            </div>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            style={{
+              width: "100%",
+              border: "none",
+              borderRadius: 12,
+              padding: "12px 14px",
+              background: isSubmitting ? "#94a3b8" : "linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%)",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+            }}
+          >
+            {isSubmitting ? "Ingresando..." : "Ingresar"}
+          </button>
+        </form>
+
+        <div style={{ marginTop: 18, display: "grid", gap: 10, textAlign: "center" }}>
+          <Link href="/auth/forgot-password" style={{ color: "#0ea5e9", textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
+            ¿Olvidaste tu contraseña?
+          </Link>
+          <Link href="/auth/newuser" style={{ color: "#0ea5e9", textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
+            Crear cuenta
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+
   const handleAnimationComplete = () => {
     setShowAnimation(false);
     setTimeout(() => setPageVisible(true), 30);

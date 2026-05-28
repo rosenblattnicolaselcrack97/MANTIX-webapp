@@ -70,20 +70,22 @@ export default function DashboardPage() {
       setIsLoading(true);
 
       const companyFilter = profile.company_id;
-      const [
-        { count: assetsCount },
-        { count: providersCount },
-        { data: workOrders },
-        { data: assets },
-      ] = await Promise.all([
+      const [inventoryCountResult, legacyAssetsCountResult, suppliersCountResult, providersCountResult, workOrdersResult, stockLevelsResult, activeLocationsResult, attentionAssetsResult] = await Promise.all([
+        supabase.from("physical_inventory").select("id", { count: "exact", head: true }).eq("company_id", companyFilter),
         supabase.from("assets").select("id", { count: "exact", head: true }).eq("company_id", companyFilter),
-        supabase.from("providers").select("id", { count: "exact", head: true }).eq("company_id", companyFilter),
+        supabase.from("suppliers").select("id", { count: "exact", head: true }).eq("company_id", companyFilter).eq("is_active", true),
+        supabase.from("providers").select("id", { count: "exact", head: true }).eq("company_id", companyFilter).eq("is_active", true),
         supabase
           .from("work_orders")
-          .select("id, title, status, priority, created_at")
+          .select("id, title, status, priority, created_at, due_date")
           .eq("company_id", companyFilter)
           .order("created_at", { ascending: false })
-          .limit(5),
+          .limit(50),
+        supabase
+          .from("stock_levels")
+          .select("qty_on_hand, min_qty")
+          .eq("company_id", companyFilter),
+        supabase.from("locations").select("id", { count: "exact", head: true }).eq("company_id", companyFilter).eq("is_active", true),
         supabase
           .from("assets")
           .select("id, name, status, next_maintenance_at")
@@ -93,18 +95,37 @@ export default function DashboardPage() {
           .limit(5),
       ]);
 
-      const openWorkOrders = (workOrders ?? []).filter(
-        (workOrder) => workOrder.status === "pending" || workOrder.status === "in_progress" || workOrder.status === "scheduled",
+      const workOrders = workOrdersResult.data ?? [];
+      const attentionAssets = attentionAssetsResult.data ?? [];
+
+      const openWorkOrders = workOrders.filter(
+        (workOrder) => ["pending", "in_progress", "assigned", "paused", "scheduled", "draft"].includes(workOrder.status),
       ).length;
+      const overdueWorkOrders = workOrders.filter(
+        (workOrder) =>
+          workOrder.due_date &&
+          !["closed", "completed", "cancelled"].includes(workOrder.status) &&
+          new Date(workOrder.due_date) < new Date(),
+      ).length;
+      const lowStockCount = (stockLevelsResult.data ?? []).filter(
+        (item) => Number(item.min_qty ?? 0) > 0 && Number(item.qty_on_hand ?? 0) < Number(item.min_qty ?? 0),
+      ).length;
+
+      const inventoryCount = inventoryCountResult.count ?? legacyAssetsCountResult.count ?? 0;
+      const suppliersCount = suppliersCountResult.count ?? providersCountResult.count ?? 0;
+      const activeLocationsCount = activeLocationsResult.count ?? 0;
 
       if (isMounted) {
         setMetrics([
-          { label: "Activos", value: assetsCount ?? 0 },
-          { label: "Órdenes activas", value: openWorkOrders },
-          { label: "Proveedores", value: providersCount ?? 0 },
+          { label: "Total inventario físico", value: inventoryCount },
+          { label: "OTs abiertas", value: openWorkOrders },
+          { label: "OTs vencidas", value: overdueWorkOrders },
+          { label: "Repuestos bajo mínimo", value: lowStockCount },
+          { label: "Proveedores activos", value: suppliersCount },
+          { label: "Sucursales activas", value: activeLocationsCount },
         ]);
-        setRecentWorkOrders(workOrders ?? []);
-        setAttentionAssets(assets ?? []);
+        setRecentWorkOrders(workOrders.slice(0, 5));
+        setAttentionAssets(attentionAssets);
         setIsLoading(false);
       }
     };
@@ -135,7 +156,7 @@ export default function DashboardPage() {
           </>
         }
         subtitle="Resumen operativo conectado a datos reales"
-        title="Dashboard"
+        title="Resumen"
       />
 
       {isLoading ? (

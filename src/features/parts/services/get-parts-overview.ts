@@ -1,5 +1,3 @@
-import { trackedAssets } from "@/data/mock/dashboard";
-import { partInventory } from "@/data/mock/parts";
 import type { OverviewMetric, PartItem } from "@/types/entities";
 
 export interface PartsOverview {
@@ -8,22 +6,17 @@ export interface PartsOverview {
 }
 
 export async function getPartsOverview(): Promise<PartsOverview> {
-  const lowStock = partInventory.filter((item) => item.stock <= item.minStock).length;
-  const criticalItems = partInventory.filter(
-    (item) => item.criticality === "high",
-  ).length;
-
   return {
     metrics: [
-      { label: "Ítems cargados", value: String(partInventory.length), tone: "brand" },
-      { label: "Stock bajo", value: String(lowStock), tone: "warning" },
+      { label: "Ítems cargados", value: "0", tone: "brand" },
+      { label: "Stock bajo", value: "0", tone: "warning" },
       {
         label: "Activos cubiertos",
-        value: String(trackedAssets.length),
+        value: "0",
         tone: "success",
       },
-      { label: "Críticos", value: String(criticalItems), tone: "danger" },
+      { label: "Críticos", value: "0", tone: "danger" },
     ],
-    items: partInventory,
+    items: [] as PartItem[],
   };
 }

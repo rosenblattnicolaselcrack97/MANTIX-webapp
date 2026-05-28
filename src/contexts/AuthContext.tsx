@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Carga el perfil con timeout de 5 segundos para evitar bloqueos RLS.
   const loadProfile = async (userId: string): Promise<Profile | null> => {
     // Competencia entre la query y un timeout de 5 s.
-    // Si la RLS cuelga (auto-referencia, lentitud de red, etc.) resolvemos con null.
+    // Si la RLS cuelga (auto-referencia, lentitud de red, etc.) evitamos pisar el profile a null.
     const queryPromise = supabase
       .from("profiles")
       .select("*")
@@ -78,8 +78,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const { data } = await Promise.race([queryPromise, timeoutPromise]);
     const prof = (data as Profile | null) ?? null;
-    setProfile(prof);
-    return prof;
+
+    if (prof) {
+      setProfile(prof);
+      return prof;
+    }
+
+    return profile;
   };
 
   useEffect(() => {
@@ -121,7 +126,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch {
-        setProfile(null);
+        // Error transitorio de red: mantenemos el profile en memoria si ya existe.
+        setProfile((prev) => prev ?? null);
       } finally {
         resolve();
       }
@@ -144,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setProfile(null);
           }
         } catch {
-          setProfile(null);
+          if (!currentSession?.user) setProfile(null);
         }
       }
     );

@@ -30,7 +30,7 @@ Scope: solo `MANTIX_WEBAPP`
 - `notification_log`
 
 ## Rutas existentes
-- Auth: `/auth/login`, `/auth/signup`, `/auth/confirm`, `/auth/user-approved`, `/auth/account-status`, `/auth/update-password`
+- Auth: `/auth/login`, `/auth/signup`, `/auth/newuser`, `/auth/newpass`, `/auth/usercheck`, `/auth/user-approved`, `/auth/account-status`
 - Workspace: `/`, `/locations`, `/assets`, `/assets/new`, `/work-orders`, `/work-orders/new`, `/providers`, `/preventive`, `/finance-maintenance`, `/communications-email`, `/settings`, `/users`
 - Admin global: `/admin`, `/admin/companies`, `/admin/companies/[id]`, `/admin/users`, `/admin/assets`, `/admin/work-orders`, `/admin/locations`, `/admin/admin-settings`
 - APIs criticas: `/api/auth/signup`, `/api/company/settings`, `/api/company/users`, `/api/email/inbound`, `/api/csv/import`

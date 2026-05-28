@@ -75,18 +75,18 @@ function CreateCompanyModal({ onClose, onCreated }: { onClose: () => void; onCre
   };
 
   // Estilos reutilizables dentro del modal
-  const inp = { width: "100%", padding: "9px 12px", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, color: "#f1f5f9", fontSize: 13, outline: "none", boxSizing: "border-box" as const };
-  const lbl = { fontSize: 11, color: "#475569", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 5, display: "block" };
+  const inp = { width: "100%", padding: "9px 12px", background: "var(--s2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--t1)", fontSize: 13, outline: "none", boxSizing: "border-box" as const };
+  const lbl = { fontSize: 11, color: "var(--t2)", textTransform: "uppercase" as const, letterSpacing: "0.06em", marginBottom: 5, display: "block" };
   // Helper para vincular un campo del formulario a un input/select
   const f = (k: keyof typeof EMPTY_CO_FORM) => ({ value: form[k], onChange: (e: any) => setForm((p) => ({ ...p, [k]: e.target.value })) });
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 14, width: "100%", maxWidth: 520, maxHeight: "90vh", overflow: "auto" }}>
+      <div style={{ background: "var(--s1)", border: "1px solid var(--border)", borderRadius: 14, width: "100%", maxWidth: 520, maxHeight: "90vh", overflow: "auto" }}>
         {/* Encabezado del modal */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", borderBottom: "1px solid #334155" }}>
-          <p style={{ fontSize: 15, fontWeight: 700, color: "#f1f5f9" }}>Nueva empresa</p>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}><X size={18} /></button>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", borderBottom: "1px solid var(--border)" }}>
+          <p style={{ fontSize: 15, fontWeight: 700, color: "var(--t1)" }}>Nueva empresa</p>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t2)" }}><X size={18} /></button>
         </div>
         <div style={{ padding: "20px 22px" }}>
           {/* Campo obligatorio */}
@@ -107,8 +107,8 @@ function CreateCompanyModal({ onClose, onCreated }: { onClose: () => void; onCre
           </div>
           {error && <p style={{ color: "#ef4444", fontSize: 13, marginBottom: 12 }}>{error}</p>}
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end", marginTop: 4 }}>
-            <button onClick={onClose} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #334155", background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}>Cancelar</button>
-            <button onClick={handleCreate} disabled={saving || !form.name.trim()} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, opacity: (saving || !form.name.trim()) ? 0.6 : 1 }}>
+            <button onClick={onClose} className="btn-secondary">Cancelar</button>
+            <button onClick={handleCreate} disabled={saving || !form.name.trim()} className="btn-primary" style={{ opacity: (saving || !form.name.trim()) ? 0.6 : 1 }}>
               {saving ? "Creando..." : "Crear empresa"}
             </button>
           </div>
@@ -138,29 +138,29 @@ function ConfirmDeleteCompanyModal({ company, onClose, onDeleted }: { company: C
 
   return (
     <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
-      <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 14, width: "100%", maxWidth: 460 }}>
+      <div style={{ background: "var(--s1)", border: "1px solid var(--border)", borderRadius: 14, width: "100%", maxWidth: 460 }}>
         {/* Encabezado en rojo para indicar acción destructiva */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", borderBottom: "1px solid #334155" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 22px", borderBottom: "1px solid var(--border)" }}>
           <p style={{ fontSize: 15, fontWeight: 700, color: "#ef4444" }}>Eliminar empresa</p>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b" }}><X size={18} /></button>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--t2)" }}><X size={18} /></button>
         </div>
         <div style={{ padding: "20px 22px" }}>
-          <p style={{ color: "#94a3b8", fontSize: 14, marginBottom: 16 }}>
+          <p style={{ color: "var(--t2)", fontSize: 14, marginBottom: 16 }}>
             Esta acción es <strong style={{ color: "#ef4444" }}>irreversible</strong>. Se eliminarán todos los datos de{" "}
-            <strong style={{ color: "#f1f5f9" }}>{company.name}</strong> incluyendo usuarios, activos, órdenes de trabajo y sucursales.
+            <strong style={{ color: "var(--t1)" }}>{company.name}</strong> incluyendo usuarios, activos, órdenes de trabajo y sucursales.
           </p>
           {/* Confirmación manual: el usuario debe escribir el nombre exacto */}
-          <p style={{ fontSize: 12, color: "#475569", marginBottom: 8 }}>Escribí el nombre de la empresa para confirmar:</p>
+          <p style={{ fontSize: 12, color: "var(--t2)", marginBottom: 8 }}>Escribí el nombre de la empresa para confirmar:</p>
           <input
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
             placeholder={company.name}
-            style={{ width: "100%", padding: "9px 12px", background: "#0f172a", border: "1px solid #334155", borderRadius: 8, color: "#f1f5f9", fontSize: 13, outline: "none", boxSizing: "border-box" as const, marginBottom: 16 }}
+            style={{ width: "100%", padding: "9px 12px", background: "var(--s2)", border: "1px solid var(--border)", borderRadius: 8, color: "var(--t1)", fontSize: 13, outline: "none", boxSizing: "border-box" as const, marginBottom: 16 }}
           />
           {error && <p style={{ color: "#ef4444", fontSize: 13, marginBottom: 12 }}>{error}</p>}
           <div style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}>
-            <button onClick={onClose} style={{ padding: "8px 16px", borderRadius: 8, border: "1px solid #334155", background: "transparent", color: "#94a3b8", cursor: "pointer", fontSize: 13 }}>Cancelar</button>
-            <button onClick={handleDelete} disabled={deleting || confirm !== company.name} style={{ padding: "8px 16px", borderRadius: 8, border: "none", background: "#ef4444", color: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 600, opacity: (deleting || confirm !== company.name) ? 0.5 : 1 }}>
+            <button onClick={onClose} className="btn-secondary">Cancelar</button>
+            <button onClick={handleDelete} disabled={deleting || confirm !== company.name} className="btn-danger" style={{ opacity: (deleting || confirm !== company.name) ? 0.5 : 1 }}>
               {deleting ? "Eliminando..." : "Eliminar definitivamente"}
             </button>
           </div>
@@ -310,9 +310,10 @@ export default function AdminCompaniesPage() {
 
       {/* Buscador */}
       <div style={{ position: "relative", marginBottom: 20, maxWidth: 360 }}>
-        <Search size={15} color="#64748b" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
+        <Search size={15} color="var(--t3)" style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }} />
         <input
-          style={{ width: "100%", background: "#1e293b", border: "1px solid #334155", borderRadius: 10, padding: "10px 12px 10px 38px", fontSize: 13, color: "#f1f5f9", outline: "none", boxSizing: "border-box" }}
+          className="form-control"
+          style={{ paddingLeft: 38 }}
           placeholder="Buscar empresa..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -320,7 +321,7 @@ export default function AdminCompaniesPage() {
       </div>
 
       {/* Tabla */}
-      <div style={{ background: "#1e293b", border: "1px solid #334155", borderRadius: 12, overflow: "hidden" }}>
+      <div style={{ background: "var(--s1)", border: "1px solid var(--border)", borderRadius: 12, overflow: "hidden" }}>
         {loading ? (
           <div style={{ padding: "48px", textAlign: "center", color: "#475569", fontSize: 14 }}>Cargando empresas...</div>
         ) : filtered.length === 0 ? (
@@ -352,7 +353,7 @@ export default function AdminCompaniesPage() {
                       </td>
                       <td style={TD}>
                         {isSuperAdmin && editingPlan === c.id ? (
-                          <select autoFocus value={c.plan} onChange={(e) => updatePlan(c, e.target.value)} onBlur={() => setEditingPlan(null)} style={{ fontSize: 12, background: "#0f172a", color: "#f1f5f9", border: "1px solid #334155", borderRadius: 6, padding: "4px 8px" }}>
+                          <select autoFocus value={c.plan} onChange={(e) => updatePlan(c, e.target.value)} onBlur={() => setEditingPlan(null)} className="form-control" style={{ fontSize: 12, padding: "4px 28px 4px 8px", minWidth: 120, height: 30 }}>
                             {PLANS.map((p) => <option key={p} value={p}>{p}</option>)}
                           </select>
                         ) : (
@@ -419,5 +420,5 @@ export default function AdminCompaniesPage() {
 }
 
 const TD = { padding: "14px 16px", verticalAlign: "middle" };
-const BTN_PRIMARY = { display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "#0ea5e9", color: "#fff", border: "none", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" };
-const BTN_SECONDARY = { display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "transparent", color: "#94a3b8", border: "1px solid #334155", borderRadius: 8, fontSize: 13, cursor: "pointer" };
+const BTN_PRIMARY = { display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "var(--blue-d)", color: "var(--on-brand)", border: "1px solid var(--blue-d)", borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer" };
+const BTN_SECONDARY = { display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", background: "var(--s2)", color: "var(--t2)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 13, cursor: "pointer" };

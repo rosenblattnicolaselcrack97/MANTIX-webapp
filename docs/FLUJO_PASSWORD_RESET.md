@@ -2,14 +2,13 @@
 
 ## Rutas
 - `/auth/forgot-password`
-- `/auth/update-password`
-- `/auth/confirm`
+- `/auth/newpass`
 
 ## Flujo
 1. Usuario ingresa email en `/auth/forgot-password`.
 2. Supabase envia link de recovery.
-3. Link vuelve a `/auth/update-password` o pasa por `/auth/confirm` si Supabase incluye token/callback.
-4. `/auth/update-password` valida que exista sesion recovery.
+3. Link vuelve a `/auth/newpass`.
+4. `/auth/newpass` valida que exista sesion recovery.
 5. Usuario ingresa nueva password.
 6. Supabase actualiza password.
 7. Se muestra exito y redirige a `/auth/login`.
@@ -23,4 +22,4 @@
 
 ## Variables
 - `NEXT_PUBLIC_SITE_URL=https://mantixarg.com`
-- Redirect URL permitida: `https://mantixarg.com/auth/update-password`
+- Redirect URL permitida: `https://mantixarg.com/auth/newpass`

@@ -543,36 +543,6 @@ export default function SettingsPage() {
           </Card>
         )
       ) : null}
-
-      <style>{`
-        .btn-primary {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border: none;
-          border-radius: 10px;
-          padding: 10px 14px;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          color: #fff;
-          background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-          text-decoration: none;
-        }
-        .btn-secondary {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid var(--border);
-          border-radius: 10px;
-          padding: 10px 14px;
-          font-size: 13px;
-          font-weight: 700;
-          color: var(--t1);
-          background: var(--s2);
-          text-decoration: none;
-        }
-      `}</style>
     </div>
   );
 }

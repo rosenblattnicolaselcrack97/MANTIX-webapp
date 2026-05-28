@@ -5,16 +5,11 @@ import {
   ClipboardList,
   Building2,
   LayoutGrid,
-  Mail,
-  PiggyBank,
-  ShieldCheck,
   Settings2,
   UserRound,
   Users,
   Truck,
   Tag,
-  Zap,
-  LineChart,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -35,8 +30,8 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
       label: "Principal",
       items: [
         {
-          id: "dashboard",
-          title: "Dashboard",
+          id: "resumen",
+          title: "Resumen",
           href: "/",
           icon: LayoutGrid,
         },
@@ -48,21 +43,21 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
         },
         {
           id: "assets",
-          title: "Activos",
+          title: "Inventario Físico",
           href: "/assets",
           icon: Boxes,
-        },
-        {
-          id: "work-orders",
-          title: "Órdenes de trabajo",
-          href: "/work-orders",
-          icon: ClipboardList,
         },
         {
           id: "providers",
           title: "Proveedores",
           href: "/providers",
           icon: Truck,
+        },
+        {
+          id: "work-orders",
+          title: "Órdenes de trabajo",
+          href: "/work-orders",
+          icon: ClipboardList,
         },
       ],
     },
@@ -76,40 +71,10 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
           icon: BarChart3,
         },
         {
-          id: "preventive",
-          title: "Preventivo",
-          href: "/preventive",
-          icon: ShieldCheck,
-        },
-        {
-          id: "automatizaciones",
-          title: "Automatizaciones",
-          href: "/automatizaciones",
-          icon: Zap,
-        },
-        {
           id: "categorias",
           title: "Categorías",
           href: "/categorias",
           icon: Tag,
-        },
-        {
-          id: "reports",
-          title: "Reportes",
-          href: "/reports",
-          icon: LineChart,
-        },
-        {
-          id: "finance",
-          title: "Finanzas",
-          href: "/finance-maintenance",
-          icon: PiggyBank,
-        },
-        {
-          id: "email-comms",
-          title: "Comunicaciones",
-          href: "/communications-email",
-          icon: Mail,
         },
       ],
     },
@@ -118,7 +83,7 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
       items: [
         {
           id: "settings",
-          title: "Configuración",
+          title: "Configuración General",
           href: "/settings",
           icon: Settings2,
         },
@@ -134,7 +99,7 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
           : []),
         {
           id: "account",
-          title: "Cuenta",
+          title: "Cuenta (Próximamente)",
           href: "/account",
           icon: UserRound,
         },
@@ -145,8 +110,8 @@ export function buildNavigationSections(isCompanyAdmin: boolean): NavigationSect
 
 const pageMeta = {
   "/": {
-    title: "Dashboard",
-    subtitle: "Resumen operativo de tu empresa",
+    title: "Resumen",
+    subtitle: "KPIs operativos reales de tu empresa",
   },
   "/work-orders": {
     title: "Órdenes de Trabajo",
@@ -157,48 +122,48 @@ const pageMeta = {
     subtitle: "Completá los datos para registrar la intervención",
   },
   "/assets": {
-    title: "Activos",
-    subtitle: "Inventario y estado de equipos",
+    title: "Inventario Físico",
+    subtitle: "Activos, componentes, repuestos, herramientas e instalaciones",
   },
   "/assets/new": {
     title: "Registrar Nuevo Activo",
     subtitle: "Completá la información del equipo para agregarlo al sistema",
   },
   "/providers": {
-    title: "Proveedores y Técnicos Externos",
-    subtitle: "Directorio de contactos de mantenimiento",
+    title: "Proveedores",
+    subtitle: "CRM operativo de proveedores y contactos",
   },
   "/locations": {
     title: "Sucursales",
     subtitle: "Sedes activas de operación",
   },
   "/reports": {
-    title: "Reportes y Análisis",
-    subtitle: "Métricas e indicadores operativos",
+    title: "Reportes (Próximamente)",
+    subtitle: "Módulo fuera de alcance del MVP Fase 1/2",
   },
   "/preventive": {
-    title: "Mantenimiento Preventivo",
-    subtitle: "Rutinas y programas de mantenimiento",
+    title: "Mantenimiento Preventivo (Próximamente)",
+    subtitle: "Módulo fuera de alcance del MVP Fase 1/2",
   },
   "/parts": {
     title: "Stock y Repuestos",
     subtitle: "Inventario técnico y alertas de reposición",
   },
   "/automatizaciones": {
-    title: "Automatizaciones",
-    subtitle: "Reglas automáticas basadas en eventos del sistema",
+    title: "Automatizaciones (Próximamente)",
+    subtitle: "Módulo fuera de alcance del MVP Fase 1/2",
   },
   "/categorias": {
     title: "Categorías",
     subtitle: "Clasificación de activos, órdenes y repuestos",
   },
   "/finance-maintenance": {
-    title: "Finanzas del mantenimiento",
-    subtitle: "Costos y presupuestos de intervenciones",
+    title: "Análisis Financiero (Próximamente)",
+    subtitle: "Módulo fuera de alcance del MVP Fase 1/2",
   },
   "/communications-email": {
-    title: "Comunicaciones por email",
-    subtitle: "Configuración de notificaciones y plantillas",
+    title: "Comunicaciones (Próximamente)",
+    subtitle: "Email y canales externos quedan fuera del MVP Fase 1/2",
   },
   "/settings": {
     title: "Configuración",

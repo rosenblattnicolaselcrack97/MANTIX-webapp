@@ -8,8 +8,10 @@
     "vercel-build": "npm run typecheck && next build",
     "start": "next start",
     "lint": "eslint .",
+    "lint:mvp": "eslint \"src/app/(workspace)\" \"src/features\" \"src/lib\" \"src/contexts\" --ignore-pattern \"src/app/(workspace)/preventive/**\" --ignore-pattern \"src/app/(workspace)/automatizaciones/**\" --ignore-pattern \"src/app/(workspace)/communications-email/**\" --ignore-pattern \"src/app/(workspace)/finance-maintenance/**\" --ignore-pattern \"src/app/(workspace)/reports/**\" --ignore-pattern \"src/contexts/SelectedCompanyContext.tsx\" --ignore-pattern \"src/lib/csvUtils.ts\" --ignore-pattern \"src/lib/csvValidation.ts\" --ignore-pattern \"src/lib/duplicateDetection.ts\"",
     "lint:fix": "eslint . --fix",
     "typecheck": "tsc --noEmit",
+    "validate:mvp": "npm run typecheck && npm run lint:mvp",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

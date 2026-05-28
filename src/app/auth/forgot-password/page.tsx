@@ -13,7 +13,7 @@ export default function ForgotPasswordPage() {
 
   const redirectTo = useMemo(() => {
     const base = process.env.NEXT_PUBLIC_SITE_URL?.trim() ?? (typeof window !== "undefined" ? window.location.origin : "");
-    return `${base}/auth/confirm`;
+    return `${base}/auth/newpass`;
   }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {

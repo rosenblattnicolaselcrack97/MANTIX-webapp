@@ -1,18 +1,20 @@
 # EMAIL CUENTA APROBADA PROFESIONAL
 
 ## Como funciona hoy
-- Supabase Auth envia los emails de confirmacion/invitacion/reset.
-- En esta pasada no se agrego proveedor custom porque `.env.local` no tiene Resend/Postmark/SendGrid.
-- La app procesa el link en `/auth/confirm` y deriva a `/auth/user-approved` si el usuario esta listo.
+- El signup usa un link real de verificacion y redirige a `/auth/usercheck`.
+- El recovery redirige a `/auth/newpass`.
+- Si usas un proveedor custom de email, el HTML corto se arma desde la app y el boton debe apuntar al link de verificacion generado.
 
 ## Templates creados
 - `docs/email-templates/account-approved.html`
 - `docs/email-templates/account-approved.txt`
+- `docs/email-templates/password-recovery.html`
+- `docs/email-templates/password-recovery.txt`
 
 ## URL del boton
-- Usar `{{ .ConfirmationURL }}` en el template.
-- En Supabase, configurar Redirect URL permitida: `https://mantixarg.com/auth/confirm`.
-- El flujo esperado es email -> Supabase token -> `/auth/confirm` -> `/auth/user-approved`.
+- Usar el link de verificacion generado por el flujo de signup.
+- En Supabase, configurar Redirect URL permitida: `https://mantixarg.com/auth/usercheck`.
+- El flujo esperado es email -> link de verificacion -> `/auth/usercheck` -> `/` o `/admin`.
 
 ## Configurar en Supabase
 1. Dashboard de Supabase.
@@ -22,7 +24,7 @@
 5. Copiar texto plano desde `docs/email-templates/account-approved.txt`.
 6. Authentication -> URL Configuration:
    - Site URL: `https://mantixarg.com`
-   - Redirect URLs: `https://mantixarg.com/auth/confirm`
+   - Redirect URLs: `https://mantixarg.com/auth/usercheck`
 
 ## Configurar en Vercel
 - `NEXT_PUBLIC_SITE_URL=https://mantixarg.com`
@@ -33,5 +35,5 @@
 ## Prueba
 - Enviar confirmacion/invitacion.
 - Abrir el CTA.
-- Verificar que el token se procesa en `/auth/confirm`.
-- Verificar llegada a `/auth/user-approved`.
+- Verificar que el flujo llega a `/auth/usercheck`.
+- Verificar llegada a `/auth/usercheck`.
